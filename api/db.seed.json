@@ -1,0 +1,10 @@
+{
+  "hagelflieger": { "scores": [] },
+  "leuchtfeuer": { "scores": [] },
+  "reduit": { "scores": [] },
+  "semesterlauf": { "scores": [], "recent": [] },
+  "steinmannli": { "scores": [] },
+  "stellwerk": { "scores": [] },
+  "pulverschnee": { "scores": [], "recent": [] },
+  "wintervorrat": { "scores": [] }
+}

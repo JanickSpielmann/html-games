@@ -1,0 +1,725 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Stellwerk</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231b2120'/%3E%3Cpath d='M6 42h52M22 42l18-18h18' fill='none' stroke='%23ebe8de' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M22 42l18-18h18' fill='none' stroke='%23f4c430' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='14' cy='18' r='7' fill='%23252d2a' stroke='%2398a29d' stroke-width='2'/%3E%3Ccircle cx='14' cy='18' r='4' fill='%23f4c430'/%3E%3Ccircle cx='50' cy='42' r='4.5' fill='%23e0442f'/%3E%3C/svg%3E">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&family=IBM+Plex+Mono:wght@500;600&family=Saira+Condensed:wght@600;700;800&display=swap">
+<style>
+/* Layout: Leitstand Kopfzeile oben, darunter das Domino Spurplanpult als Canvas, unten der Meldungsticker */
+:root{
+  --room:#1b2120;
+  --room-2:#252d2a;
+  --line:#35403c;
+  --ink:#ebe8de;
+  --ink-dim:#98a29d;
+  --lamp:#f4c430;
+  --alarm:#e0442f;
+  --f-display:"Saira Condensed","Arial Narrow",sans-serif;
+  --f-body:"Archivo",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{
+  margin:0;background:var(--room);color:var(--ink);font-family:var(--f-body);
+  display:flex;flex-direction:column;overflow:hidden;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:0;
+}
+.bar{display:flex;flex-wrap:wrap;align-items:center;gap:10px 24px;padding-block:12px 10px;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:baseline;gap:12px;margin-right:auto;min-width:0}
+h1{font-family:var(--f-display);font-weight:800;font-size:2rem;letter-spacing:.03em;margin:0;text-transform:uppercase;line-height:1}
+.sub{font-family:var(--f-mono);font-size:.72rem;color:var(--ink-dim);letter-spacing:.06em;text-transform:uppercase}
+.stats{display:flex;gap:20px}
+.stat{display:flex;flex-direction:column;gap:2px}
+.lbl{font-size:.64rem;text-transform:uppercase;letter-spacing:.13em;color:var(--ink-dim);font-weight:600}
+.val{font-family:var(--f-mono);font-size:1.3rem;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.1}
+.lamps{display:flex;gap:6px;padding-top:6px}
+.lamps i{width:14px;height:14px;border-radius:50%;background:#3b201b;border:1px solid #5c2b23;transition:background .2s,box-shadow .2s}
+.lamps i.on{background:var(--alarm);box-shadow:0 0 9px var(--alarm)}
+.next{display:flex;flex-direction:column;gap:4px;min-width:0}
+.next ol{list-style:none;margin:0;padding:0;display:flex;gap:8px;flex-wrap:wrap}
+.next li{display:flex;align-items:center;gap:7px;font-family:var(--f-mono);font-size:.8rem;background:var(--room-2);border:1px solid var(--line);border-radius:4px;padding:3px 9px 3px 4px;white-space:nowrap}
+.next li:first-child{border-color:var(--lamp)}
+.dot{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:600;font-size:.74rem;font-family:var(--f-body)}
+.ctrl{display:flex;gap:8px}
+button{font:600 .8rem var(--f-body);color:var(--ink);background:var(--room-2);border:1px solid var(--line);border-radius:4px;padding:7px 12px;cursor:pointer}
+button:hover{border-color:var(--ink-dim)}
+button:focus-visible{outline:2px solid var(--lamp);outline-offset:2px}
+.stage{position:relative;flex:1;min-height:0}
+canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:manipulation;display:block}
+.ticker{font-family:var(--f-mono);font-size:.78rem;color:var(--ink-dim);padding-block:8px 10px;border-top:1px solid var(--line);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ticker b{color:var(--lamp);font-weight:600}
+.overlay{position:absolute;inset:0;display:grid;place-items:center;background:rgba(27,33,32,.6);padding:16px}
+.card{max-width:27rem;width:100%;background:var(--room-2);border:1px solid var(--line);border-radius:6px;padding:22px 22px 20px;display:flex;flex-direction:column;gap:12px;box-shadow:0 20px 50px rgba(0,0,0,.45)}
+.card h2{font-family:var(--f-display);font-weight:800;font-size:2.3rem;margin:0;text-transform:uppercase;letter-spacing:.02em;line-height:1;text-wrap:balance}
+.card p{margin:0;line-height:1.5}
+.card ul{margin:0;padding-left:1.1rem;display:flex;flex-direction:column;gap:5px;color:var(--ink-dim);line-height:1.45;font-size:.92rem}
+.card kbd{font-family:var(--f-mono);font-size:.8rem;background:var(--room);border:1px solid var(--line);border-radius:3px;padding:0 5px;color:var(--ink)}
+.best{font-family:var(--f-mono);font-size:.82rem;color:var(--lamp)}
+.primary{background:var(--lamp);color:#1d1a10;border-color:var(--lamp);font-size:.95rem;padding:11px 18px;align-self:flex-start}
+.primary:hover{border-color:#fff}
+.overlay{display:flex;overflow-y:auto}
+.card{margin:auto}
+.entry{display:flex;flex-direction:column;gap:6px;margin:0}
+.entry label{font-size:.66rem;font-weight:600;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.13em}
+.entry-row{display:flex;gap:8px}
+.entry input{flex:1;min-width:0;font:500 1rem var(--f-body);color:var(--ink);background:var(--room);padding:9px 11px;border:1px solid var(--lamp);border-radius:4px}
+.entry input::placeholder{color:var(--ink-dim)}
+.entry input:focus-visible{outline:2px solid var(--lamp);outline-offset:1px}
+.entry button:disabled{opacity:.45;cursor:default}
+.entry-msg{margin:0;font-size:.85rem;color:var(--ink-dim);min-height:1.2em}
+.ranks{border-top:1px solid var(--line);padding-top:10px;display:flex;flex-direction:column;gap:6px}
+.ranks-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.ranks h3{margin:0;font-family:var(--f-display);font-weight:800;font-size:1.4rem;text-transform:uppercase;letter-spacing:.03em}
+.rank-status{margin:0;font-size:.88rem;line-height:1.4;color:var(--ink-dim)}
+.rank-list{list-style:none;margin:0;padding:0}
+.rank-list li{display:grid;grid-template-columns:2.4em minmax(0,1fr) auto;gap:8px;align-items:baseline;padding:5px 4px;border-bottom:1px solid var(--line);font-size:.95rem;font-variant-numeric:tabular-nums}
+.rank-list li:last-child{border-bottom:0}
+.rank-list li.gap{border-top:1px dashed var(--ink-dim)}
+.rank-list .pos{color:var(--ink-dim);font-family:var(--f-mono)}
+.rank-list li:first-child .pos{color:var(--lamp);font-weight:600}
+.rank-list .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rank-list .pts{font-family:var(--f-mono);font-weight:600}
+.rank-list li.me{background:rgba(244,196,48,.16)}
+.link{background:none;border:0;padding:0;font:500 .85rem var(--f-body);color:var(--ink);text-decoration:underline;text-underline-offset:3px}
+.card.full{max-width:32rem;max-height:100%;gap:10px}
+.full-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.full-cols,.rank-list.full li{grid-template-columns:50px minmax(0,1fr) 64px 80px}
+.full-cols{display:grid;gap:8px;padding:0 4px;font-size:.66rem;font-weight:600;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.12em}
+.full-cols span:nth-child(n+3),.rank-list.full .pts,.rank-list.full .dt{text-align:right}
+.rank-list.full .dt{color:var(--ink-dim);font-size:.85rem;font-family:var(--f-mono)}
+.full-scroll{overflow-y:auto;min-height:0;flex:1;border-top:1px solid var(--line)}
+@media (max-width:420px){.full-cols,.rank-list.full li{grid-template-columns:34px minmax(0,1fr) 44px 66px;gap:6px}}
+@media (max-width:600px){
+  .sub{display:none}
+  h1{font-size:1.55rem}
+  .bar{gap:8px 16px}
+  .stats{gap:14px}
+  .next{width:100%;flex-direction:row;align-items:center;gap:8px}
+  .next .lbl{display:none}
+  .next li{font-size:.72rem}
+  .ctrl{order:1}
+  .stats{order:2}
+  .next{order:3}
+}
+</style>
+</head>
+<body>
+<header class="bar">
+  <div class="brand"><h1>Stellwerk</h1><span class="sub">Spurplanpult · 6 Gleise</span></div>
+  <div class="stats">
+    <div class="stat"><span class="lbl">Züge</span><span class="val" id="score">0</span></div>
+    <div class="stat"><span class="lbl">Stufe</span><span class="val" id="level">1</span></div>
+    <div class="stat"><span class="lbl">Fehlleitungen</span><span class="lamps" id="lamps"><i></i><i></i><i></i></span></div>
+  </div>
+  <div class="next"><span class="lbl">Nächste Züge</span><ol id="queue"></ol></div>
+  <div class="ctrl">
+    <button id="soundBtn" type="button" aria-pressed="true">Ton an</button>
+    <button id="pauseBtn" type="button">Pause</button>
+  </div>
+</header>
+
+<main class="stage" id="stage">
+  <canvas id="cv" role="img" aria-label="Stellpult mit Gleisen, fünf Weichen und sechs Zielgleisen"></canvas>
+  <div class="overlay" id="ov">
+    <div class="card" id="card">
+      <h2 id="ovTitle">Stellwerk</h2>
+      <p id="ovText">Du sitzt am Stellpult. Jeder Zug fährt im Westen ein und zeigt sein Zielgleis. Stelle die Weichen rechtzeitig, damit er dort ankommt.</p>
+      <ul id="ovList">
+        <li>Weiche umstellen: antippen oder Taste <kbd>A</kbd> bis <kbd>E</kbd></li>
+        <li>Der gelb beleuchtete Fahrweg zeigt, wohin ein Zug jetzt fahren würde.</li>
+        <li>Liegt ein Zug auf der Weiche, ist sie verriegelt.</li>
+        <li>Nach drei Fehlleitungen ist Schichtende.</li>
+      </ul>
+      <form class="entry" id="entryForm" autocomplete="off" hidden>
+        <label for="playerName">Name für die Bestenliste</label>
+        <div class="entry-row">
+          <input id="playerName" name="playerName" maxlength="16" enterkeyhint="send" placeholder="Dein Name">
+          <button id="btnSend" type="submit">Eintragen</button>
+        </div>
+        <p class="entry-msg" id="entryMsg" aria-live="polite"></p>
+      </form>
+      <span class="best" id="ovBest"></span>
+      <button class="primary" id="ovBtn" type="button">Schicht beginnen</button>
+      <section class="ranks" id="ranksBox" aria-labelledby="ranksTitle">
+        <div class="ranks-head">
+          <h3 id="ranksTitle">Top 5</h3>
+          <button class="link" id="openRanks" type="button">Top 150 anzeigen</button>
+        </div>
+        <p class="rank-status" id="rankStatus">Bestenliste lädt</p>
+        <ol class="rank-list" id="rankList"></ol>
+      </section>
+    </div>
+    <div class="card full" id="ovRanks" hidden>
+      <div class="full-head">
+        <h2>Top 150</h2>
+        <button id="btnCloseRanks" type="button">Zurück</button>
+      </div>
+      <div class="full-cols" aria-hidden="true"><span>Platz</span><span>Name</span><span>Züge</span><span>Datum</span></div>
+      <p class="rank-status" id="fullRankStatus">Bestenliste lädt</p>
+      <div class="full-scroll"><ol class="rank-list full" id="fullRankList"></ol></div>
+    </div>
+  </div>
+</main>
+
+<div class="ticker" id="ticker" aria-live="polite">Stellpult bereit. Erste Einfahrt folgt nach Schichtbeginn.</div>
+
+<script>
+(() => {
+  const cv = document.getElementById('cv');
+  const ctx = cv.getContext('2d');
+  const $ = id => document.getElementById(id);
+
+  /* ===== Bestenliste über die eigene API =====
+     Gespeichert wird {"scores":[]} auf dem eigenen Server. Ohne erreichbare API gibt es nur den lokalen Rekord. */
+  const LB_URL='/api/stellwerk';
+  const LB_ON = true;
+  const RANK_MAX = 150, RANK_SHOWN = 5;
+  const STORE = 'stellwerk-';
+
+  // Pult Farben (bewusst ein einziger Look: helles Domino Pult im dunklen Raum)
+  const C = {
+    frame:'#8d8a7e', panel:'#d0cdc2', seam:'#bbb8ac', track:'#242422', slot:'#4b4a45',
+    lamp:'#f4c430', alarm:'#e0442f', ok:'#2fa862', button:'#2a2a27', label:'#57544a', white:'#f7f5ee'
+  };
+  const COLORS = ['#cf3a2b','#2c5fc7','#23914e','#df7a21','#8a4cc4','#13909d'];
+  const FD = '"Saira Condensed","Arial Narrow",sans-serif';
+  const FM = '"IBM Plex Mono",ui-monospace,monospace';
+  const TRAIN_LEN = 1.3;
+
+  // Gleisplan in Rasterkoordinaten (Fluss von links nach rechts)
+  const tracks = {};
+  function mk(id, pts, to){
+    const cum = [0];
+    for (let i = 1; i < pts.length; i++) cum.push(cum[i-1] + Math.hypot(pts[i][0]-pts[i-1][0], pts[i][1]-pts[i-1][1]));
+    tracks[id] = { id, pts, cum, len: cum[cum.length-1], to };
+  }
+  mk('in', [[0,5],[2,5]], {sw:0});
+  mk('A0', [[2,5],[4,3],[5,3]], {sw:1});
+  mk('A1', [[2,5],[4,7],[5,7]], {sw:2});
+  mk('B0', [[5,3],[7,1],[8,1]], {sw:3});
+  mk('B1', [[5,3],[6,4],[14,4]], {leaf:2});
+  mk('C0', [[5,7],[6,6],[14,6]], {leaf:3});
+  mk('C1', [[5,7],[7,9],[8,9]], {sw:4});
+  mk('D0', [[8,1],[9,0],[14,0]], {leaf:0});
+  mk('D1', [[8,1],[9,2],[14,2]], {leaf:1});
+  mk('E0', [[8,9],[9,8],[14,8]], {leaf:4});
+  mk('E1', [[8,9],[9,10],[14,10]], {leaf:5});
+
+  const switches = [
+    {key:'A', x:2, y:5, out:['A0','A1']},
+    {key:'B', x:5, y:3, out:['B0','B1']},
+    {key:'C', x:5, y:7, out:['C0','C1']},
+    {key:'D', x:8, y:1, out:['D0','D1']},
+    {key:'E', x:8, y:9, out:['E0','E1']},
+  ].map(s => ({...s, state:0, flash:0, deny:0}));
+  const LEAVES = [0,2,4,6,8,10];
+  const BX = [-0.8, 15.8], BY = [-0.9, 10.9];
+
+  // Zustand
+  let state = 'intro';
+  let trains = [], effects = [], queue = [];
+  let score = 0, misses = 0, level = 1, spawnT = 0, shake = 0;
+  let best = 0;
+  try { best = parseInt(localStorage.getItem('stellwerk.best') || '0', 10) || 0; } catch(e) {}
+
+  const speed = () => Math.min(3.6, 1.4 + 0.22*(level-1));
+  const interval = () => Math.max(2.1, 4.8 - 0.35*(level-1));
+
+  // Züge
+  const CATS = [['S',4],['RE',3],['IR',3],['IC',2]];
+  function pickCat(){
+    const tot = CATS.reduce((a,c)=>a+c[1],0); let r = Math.random()*tot;
+    for (const [c,w] of CATS){ if ((r -= w) < 0) return c; } return 'S';
+  }
+  const rnd = (a,b) => a + Math.floor(Math.random()*(b-a+1));
+  function makeSpec(){
+    let dest;
+    do { dest = rnd(0,5); } while (queue.length && dest === queue[queue.length-1].dest && Math.random() < 0.6);
+    const cat = pickCat();
+    const num = cat === 'S' ? [1,2,3,4,5,6,31,44,52][rnd(0,8)]
+              : cat === 'RE' ? rnd(4010,4980)
+              : cat === 'IR' ? rnd(1705,2590)
+              : rnd(705,1090);
+    return { dest, color: COLORS[dest], name: cat + ' ' + num };
+  }
+  function newTrain(spec){ return { ...spec, route:[{tr:tracks.in, start:0}], s:0, arrived:null, fade:0 }; }
+
+  function along(tr, d){
+    d = Math.max(0, Math.min(tr.len, d));
+    const c = tr.cum; let i = 1;
+    while (i < c.length-1 && c[i] < d) i++;
+    const a = tr.pts[i-1], b = tr.pts[i], seg = c[i]-c[i-1];
+    const t = seg ? (d - c[i-1]) / seg : 0;
+    return [a[0] + (b[0]-a[0])*t, a[1] + (b[1]-a[1])*t];
+  }
+  function trainPoint(t, s){
+    const r = t.route; let k = r.length-1;
+    while (k > 0 && r[k].start > s) k--;
+    return along(r[k].tr, s - r[k].start);
+  }
+  // Route anhand der Weichenlagen verlängern; gibt Zielgleis zurück, sobald das Ende erreicht ist
+  function extend(t){
+    let last = t.route[t.route.length-1];
+    while (t.s >= last.start + last.tr.len){
+      const to = last.tr.to;
+      if (to.sw == null){ t.s = last.start + last.tr.len; return to.leaf; }
+      const sw = switches[to.sw];
+      last = { tr: tracks[sw.out[sw.state]], start: last.start + last.tr.len };
+      t.route.push(last);
+    }
+    return -1;
+  }
+  function setRoute(){
+    let tr = tracks.in; const list = [tr];
+    while (tr.to.sw != null){ const sw = switches[tr.to.sw]; tr = tracks[sw.out[sw.state]]; list.push(tr); }
+    return list;
+  }
+  function lockedSet(){
+    const set = new Set();
+    for (const t of trains){
+      if (t.arrived != null) continue;
+      for (let k = 1; k < t.route.length; k++){
+        const st = t.route[k].start;
+        if (t.s - st < TRAIN_LEN + 0.2) set.add(t.route[k-1].tr.to.sw);
+      }
+    }
+    return set;
+  }
+
+  // Ton
+  let actx = null, soundOn = true;
+  function ensureAudio(){
+    if (!actx){ try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) { actx = null; } }
+    if (actx && actx.state === 'suspended') actx.resume().catch(()=>{});
+  }
+  function tone(f, d, type='square', v=0.05, when=0){
+    if (!soundOn || !actx) return;
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = type; o.frequency.value = f;
+    const t0 = actx.currentTime + when;
+    g.gain.setValueAtTime(v, t0);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + d);
+    o.connect(g); g.connect(actx.destination);
+    o.start(t0); o.stop(t0 + d + 0.02);
+  }
+  const sfx = {
+    click(){ tone(1100,0.03,'square',0.025); tone(520,0.05,'square',0.03,0.035); },
+    ok(){ tone(660,0.12,'triangle',0.07); tone(990,0.2,'triangle',0.06,0.1); },
+    bad(){ tone(190,0.4,'sawtooth',0.05); tone(140,0.4,'sawtooth',0.04,0.05); },
+    deny(){ tone(240,0.09,'square',0.035); },
+    level(){ tone(523,0.1,'triangle',0.05); tone(659,0.1,'triangle',0.05,0.1); tone(784,0.18,'triangle',0.05,0.2); }
+  };
+
+  // Layout und Abbildung Raster auf Bildschirm
+  let W=0, H=0, dpr=1, ts=40, ox=0, oy=0, portrait=false;
+  function layout(){
+    const r = cv.getBoundingClientRect();
+    dpr = Math.min(2, window.devicePixelRatio || 1);
+    W = r.width; H = r.height;
+    cv.width = Math.max(1, Math.round(W*dpr)); cv.height = Math.max(1, Math.round(H*dpr));
+    portrait = H > W*1.05;
+    const gw = BX[1]-BX[0], gh = BY[1]-BY[0];
+    const cols = portrait ? gh : gw, rows = portrait ? gw : gh;
+    const pad = Math.max(8, Math.min(18, W*0.03));
+    ts = Math.max(8, Math.min((W-pad*2)/cols, (H-pad*2)/rows));
+    ox = (W - cols*ts)/2; oy = (H - rows*ts)/2;
+  }
+  const P = (x,y) => portrait ? [ox + (y-BY[0])*ts, oy + (x-BX[0])*ts] : [ox + (x-BX[0])*ts, oy + (y-BY[0])*ts];
+  const G = (px,py) => portrait ? [(py-oy)/ts + BX[0], (px-ox)/ts + BY[0]] : [(px-ox)/ts + BX[0], (py-oy)/ts + BY[0]];
+
+  function poly(pts){
+    ctx.beginPath();
+    pts.forEach((p,i) => { const [a,b] = P(p[0],p[1]); i ? ctx.lineTo(a,b) : ctx.moveTo(a,b); });
+  }
+  function subPts(tr, d0, d1){
+    const out = [];
+    for (let d = d0; d < d1; d += 0.1) out.push(along(tr, d));
+    out.push(along(tr, d1));
+    return out;
+  }
+  function rrect(x,y,w,h,r){
+    ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
+  }
+
+  function draw(){
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.clearRect(0,0,W,H);
+    if (shake > 0){ const m = ts*0.1*(shake/0.35); ctx.translate((Math.random()-.5)*m, (Math.random()-.5)*m); }
+
+    // Pult mit Mosaikfeldern
+    const [x0,y0] = P(BX[0],BY[0]), [x1,y1] = P(BX[1],BY[1]);
+    const px = Math.min(x0,x1), py = Math.min(y0,y1), pw = Math.abs(x1-x0), ph = Math.abs(y1-y0);
+    ctx.fillStyle = C.frame; rrect(px-7, py-7, pw+14, ph+14, 9); ctx.fill();
+    ctx.fillStyle = C.panel; ctx.fillRect(px, py, pw, ph);
+    ctx.save(); ctx.beginPath(); ctx.rect(px,py,pw,ph); ctx.clip();
+    ctx.strokeStyle = C.seam; ctx.lineWidth = 1;
+    for (let gx = Math.ceil(BX[0]-0.5)+0.5; gx < BX[1]; gx++){ poly([[gx,BY[0]],[gx,BY[1]]]); ctx.stroke(); }
+    for (let gy = Math.ceil(BY[0]-0.5)+0.5; gy < BY[1]; gy++){ poly([[BX[0],gy],[BX[1],gy]]); ctx.stroke(); }
+    ctx.restore();
+
+    // Einfahrt
+    ctx.fillStyle = C.track;
+    const [ea,eb] = P(-0.55,4.72), [ec,ed] = P(-0.55,5.28), [ee,ef] = P(-0.1,5);
+    ctx.beginPath(); ctx.moveTo(ea,eb); ctx.lineTo(ec,ed); ctx.lineTo(ee,ef); ctx.closePath(); ctx.fill();
+    ctx.font = `600 ${Math.max(9, ts*0.26)}px ${FM}`; ctx.fillStyle = C.label;
+    ctx.textBaseline = 'middle'; ctx.textAlign = portrait ? 'right' : 'left';
+    const [la,lb] = P(0.0, 4.3); ctx.fillText('EINFAHRT', la, lb);
+
+    // Bahnsteige
+    LEAVES.forEach((y,i) => {
+      ctx.strokeStyle = COLORS[i]; ctx.lineWidth = ts*0.2; ctx.lineCap = 'butt';
+      poly([[10.6,y+0.42],[14,y+0.42]]); ctx.stroke();
+    });
+
+    // Gleise
+    ctx.lineJoin = 'round'; ctx.lineCap = 'butt';
+    ctx.strokeStyle = C.track; ctx.lineWidth = ts*0.28;
+    for (const id in tracks){ poly(tracks[id].pts); ctx.stroke(); }
+    LEAVES.forEach(y => { ctx.lineWidth = ts*0.16; poly([[14.15,y-0.28],[14.15,y+0.28]]); ctx.stroke(); });
+
+    // Lampenschlitze (unbeleuchtet)
+    ctx.setLineDash([ts*0.5, ts*0.3]); ctx.lineWidth = ts*0.08; ctx.strokeStyle = C.slot;
+    for (const id in tracks){ poly(tracks[id].pts); ctx.stroke(); }
+
+    // Weichenlage: Anfang des gewählten Zweigs leuchtet
+    ctx.strokeStyle = C.lamp; ctx.globalAlpha = 0.55;
+    for (const sw of switches){ const tr = tracks[sw.out[sw.state]]; poly(subPts(tr, 0, 1.3)); ctx.stroke(); }
+    // Eingestellter Fahrweg ab Einfahrt
+    ctx.globalAlpha = 1;
+    for (const tr of setRoute()){ poly(tr.pts); ctx.stroke(); }
+    ctx.setLineDash([]);
+
+    // Gleisnummern
+    LEAVES.forEach((y,i) => {
+      const [cx,cy] = P(15,y);
+      ctx.fillStyle = COLORS[i]; ctx.beginPath(); ctx.arc(cx,cy,ts*0.38,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle = C.white; ctx.font = `800 ${ts*0.5}px ${FD}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(String(i+1), cx, cy + ts*0.02);
+    });
+
+    // Züge
+    for (const t of trains){
+      ctx.globalAlpha = t.arrived != null ? Math.max(0, 1 - t.fade/0.6) : 1;
+      const pts = []; const tail = Math.max(0, t.s - TRAIN_LEN);
+      for (let d = tail; d < t.s; d += 0.1) pts.push(trainPoint(t,d));
+      pts.push(trainPoint(t,t.s));
+      ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      ctx.strokeStyle = '#151514'; ctx.lineWidth = ts*0.52; poly(pts); ctx.stroke();
+      ctx.strokeStyle = t.color; ctx.lineWidth = ts*0.38; poly(pts); ctx.stroke();
+      if (pts.length > 3){
+        ctx.setLineDash([ts*0.13, ts*0.1]); ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.lineWidth = ts*0.08;
+        poly(pts.slice(0, -2)); ctx.stroke(); ctx.setLineDash([]);
+      }
+      const [hx,hy] = P(...pts[pts.length-1]);
+      ctx.fillStyle = C.white; ctx.strokeStyle = '#151514'; ctx.lineWidth = Math.max(1.5, ts*0.05);
+      ctx.beginPath(); ctx.arc(hx,hy,ts*0.29,0,Math.PI*2); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = t.color; ctx.font = `800 ${ts*0.4}px ${FD}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(String(t.dest+1), hx, hy + ts*0.02);
+      ctx.globalAlpha = 1;
+    }
+
+    // Weichentasten
+    const locked = lockedSet();
+    for (let i = 0; i < switches.length; i++){
+      const sw = switches[i]; const [cx,cy] = P(sw.x, sw.y);
+      if (sw.flash > 0){
+        ctx.strokeStyle = C.lamp; ctx.globalAlpha = sw.flash; ctx.lineWidth = ts*0.08;
+        ctx.beginPath(); ctx.arc(cx,cy,ts*(0.45 + 0.35*(1-sw.flash)),0,Math.PI*2); ctx.stroke(); ctx.globalAlpha = 1;
+      }
+      ctx.fillStyle = C.button; ctx.beginPath(); ctx.arc(cx,cy,ts*0.4,0,Math.PI*2); ctx.fill();
+      const isLocked = locked.has(i);
+      ctx.strokeStyle = isLocked || sw.deny > 0 ? C.alarm : C.white;
+      ctx.lineWidth = Math.max(2, ts*(isLocked ? 0.09 : 0.05));
+      ctx.beginPath(); ctx.arc(cx,cy,ts*0.4,0,Math.PI*2); ctx.stroke();
+      ctx.fillStyle = C.white; ctx.font = `800 ${ts*0.44}px ${FD}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(sw.key, cx, cy + ts*0.02);
+    }
+
+    // Effekte an den Gleisnummern
+    for (const e of effects){
+      const [cx,cy] = P(e.x, e.y); const a = Math.max(0, 1 - e.t/0.9);
+      ctx.globalAlpha = a; ctx.strokeStyle = e.ok ? C.ok : C.alarm; ctx.lineWidth = ts*0.1;
+      ctx.beginPath(); ctx.arc(cx,cy,ts*(0.42 + e.t*1.1),0,Math.PI*2); ctx.stroke();
+      ctx.fillStyle = e.ok ? C.ok : C.alarm; ctx.font = `800 ${ts*0.48}px ${FD}`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      const off = portrait ? [0, -ts*(0.9 + e.t*0.8)] : [-ts*(1.2 + e.t*0.6), -ts*(0.55 + e.t*0.6)];
+      ctx.fillText(e.text, cx + off[0], cy + off[1]);
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  // Spiellogik
+  function step(dt){
+    spawnT -= dt;
+    if (spawnT <= 0){ spawn(); spawnT = interval(); }
+    const v = speed();
+    for (const t of trains){
+      if (t.arrived != null){ t.fade += dt; continue; }
+      t.s += v*dt;
+      const leaf = extend(t);
+      if (leaf >= 0) arrive(t, leaf);
+      if (state !== 'play') break;
+    }
+    trains = trains.filter(t => t.arrived == null || t.fade < 0.6);
+  }
+  function spawn(){
+    const spec = queue.shift(); queue.push(makeSpec());
+    trains.push(newTrain(spec)); renderQueue();
+    tick(`<b>${spec.name}</b> nach Gleis ${spec.dest+1} fährt ein`);
+  }
+  function arrive(t, leaf){
+    t.arrived = leaf; t.fade = 0;
+    const ok = leaf === t.dest;
+    effects.push({ x:15, y:LEAVES[leaf], t:0, ok, text: ok ? '+1' : '✕' });
+    if (ok){
+      score++;
+      const lv = 1 + Math.floor(score/8);
+      if (lv > level){
+        level = lv; sfx.level();
+        tick(`<b>${t.name}</b> pünktlich auf Gleis ${leaf+1}. Stufe ${level}: dichterer Takt.`);
+      } else {
+        sfx.ok(); tick(`<b>${t.name}</b> pünktlich auf Gleis ${leaf+1}`);
+      }
+    } else {
+      misses++; sfx.bad(); shake = 0.35;
+      tick(`<b>${t.name}</b> auf Gleis ${leaf+1} statt ${t.dest+1} eingefahren`);
+      if (misses >= 3) endGame();
+    }
+    updateHud();
+  }
+  function toggle(i){
+    if (state !== 'play') return;
+    const sw = switches[i];
+    if (lockedSet().has(i)){ sw.deny = 0.35; sfx.deny(); tick(`Weiche ${sw.key} ist verriegelt, ein Zug steht darauf`); return; }
+    sw.state ^= 1; sw.flash = 1; sfx.click();
+  }
+
+  // Anzeigen
+  function updateHud(){
+    $('score').textContent = score;
+    $('level').textContent = level;
+    [...$('lamps').children].forEach((el,i) => el.classList.toggle('on', i < misses));
+  }
+  function renderQueue(){
+    $('queue').innerHTML = queue.map(q => `<li><span class="dot" style="background:${q.color}">${q.dest+1}</span>${q.name}</li>`).join('');
+  }
+  function tick(html){ $('ticker').innerHTML = html; }
+
+  function showOverlay(kind){
+    const list = $('ovList'), bestEl = $('ovBest');
+    closeRanks();
+    if (kind === 'pause'){
+      $('ovTitle').textContent = 'Pause';
+      $('ovText').textContent = 'Alle Signale stehen auf Halt. Die Züge warten, bis du weitermachst.';
+      list.hidden = true; bestEl.textContent = '';
+      $('entryForm').hidden = true; $('ranksBox').hidden = true;
+      $('ovBtn').textContent = 'Weiter';
+    } else if (kind === 'over'){
+      const isBest = score > 0 && score >= best;
+      $('ovTitle').textContent = 'Schichtende';
+      $('ovText').textContent = `${score} ${score === 1 ? 'Zug' : 'Züge'} richtig geleitet, erreicht hast du Stufe ${level}.`;
+      list.hidden = true;
+      bestEl.textContent = isBest ? 'Neuer Bestwert!' : `Bestwert: ${best} Züge`;
+      $('ovBtn').textContent = 'Neue Schicht';
+      $('ranksBox').hidden = !LB_ON;
+    }
+    $('ov').hidden = false;
+    if (kind === 'over') prepareEntry(score, level);
+    else $('ovBtn').focus({preventScroll:true});
+  }
+  function hideOverlay(){ closeRanks(); $('ov').hidden = true; }
+
+  // Bestenliste
+  const binUrl=LB_URL;
+  let ranks = [], myId = null, lastRun = null, submitted = false, rankViewOpen = false;
+  const sortRanks = list => list
+    .filter(e => e && typeof e.score === 'number' && typeof e.name === 'string')
+    .sort((a,b) => b.score - a.score || String(a.date||'').localeCompare(String(b.date||'')))
+    .slice(0, RANK_MAX);
+  async function fetchRanks(){
+    const res = await fetch(binUrl, {cache:'no-store'});
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    return Array.isArray(data && data.scores) ? data.scores : [];
+  }
+  async function saveRanks(list){
+    const res = await fetch(binUrl, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({scores:list})});
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+  }
+  function rankStatus(t){ for (const id of ['rankStatus','fullRankStatus']){ $(id).hidden = !t; $(id).textContent = t || ''; } }
+  const fmtDate = d => /^\d{4}-\d{2}-\d{2}$/.test(d||'') ? d.slice(8,10)+'.'+d.slice(5,7)+'.'+d.slice(2,4) : '';
+  function rankRow(e, i, cols){
+    const li = document.createElement('li');
+    if (e.id && e.id === myId) li.classList.add('me');
+    for (const [cls,t] of cols){ const sp = document.createElement('span'); sp.className = cls; sp.textContent = String(t); li.appendChild(sp); }
+    return li;
+  }
+  function renderRanks(){
+    const ol = $('rankList'); ol.textContent = '';
+    const rows = ranks.slice(0, RANK_SHOWN).map((e,i) => [e,i]);
+    const mi = myId ? ranks.findIndex(e => e.id === myId) : -1;
+    if (mi >= RANK_SHOWN) rows.push([ranks[mi], mi]);
+    for (const [e,i] of rows){
+      const li = rankRow(e, i, [['pos',(i+1)+'.'],['nm',e.name],['pts',e.score+(e.score === 1 ? ' Zug' : ' Züge')]]);
+      if (i >= RANK_SHOWN) li.classList.add('gap');
+      ol.appendChild(li);
+    }
+    const full = $('fullRankList'); full.textContent = '';
+    ranks.forEach((e,i) => full.appendChild(rankRow(e, i, [['pos',(i+1)+'.'],['nm',e.name],['pts',e.score],['dt',fmtDate(e.date)]])));
+    rankStatus(ranks.length ? '' : 'Noch keine Einträge. Hol dir den ersten Platz!');
+  }
+  async function loadRanks(){
+    if (!LB_ON){ $('ranksBox').hidden = true; return; }
+    if (!ranks.length) rankStatus('Bestenliste lädt');
+    try { ranks = sortRanks(await fetchRanks()); renderRanks(); }
+    catch(err){ rankStatus('Bestenliste nicht erreichbar (' + err.message + ').'); }
+  }
+  function openRanks(){
+    rankViewOpen = true; $('card').hidden = true; $('ovRanks').hidden = false; $('ov').scrollTop = 0;
+    $('btnCloseRanks').focus({preventScroll:true});
+    loadRanks().then(() => { const me = $('fullRankList').querySelector('li.me'); if (me) me.scrollIntoView({block:'center'}); });
+  }
+  function closeRanks(){
+    if (!rankViewOpen) return;
+    rankViewOpen = false; $('ovRanks').hidden = true; $('card').hidden = false;
+    $('openRanks').focus({preventScroll:true});
+  }
+  $('openRanks').addEventListener('click', openRanks);
+  $('btnCloseRanks').addEventListener('click', closeRanks);
+  const entryMsg = t => { $('entryMsg').textContent = t; };
+  function prepareEntry(n, lv){
+    lastRun = { score:n, level:lv, date:new Date().toISOString().slice(0,10) };
+    submitted = false; $('btnSend').disabled = false; entryMsg('');
+    $('entryForm').hidden = !(n > 0 && LB_ON);
+    try { $('playerName').value = localStorage.getItem(STORE + 'name') || ''; } catch(e) {}
+    if (!$('entryForm').hidden && matchMedia('(hover:hover)').matches) $('playerName').focus({preventScroll:true});
+    else $('ovBtn').focus({preventScroll:true});
+    loadRanks();
+  }
+  $('entryForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    if (submitted || !lastRun || !LB_ON) return;
+    const name = $('playerName').value.trim().slice(0,16);
+    if (!name){ entryMsg('Bitte einen Namen eingeben.'); return; }
+    try { localStorage.setItem(STORE + 'name', name); } catch(_) {}
+    $('btnSend').disabled = true; entryMsg('Wird eingetragen');
+    try {
+      const list = await fetchRanks();
+      const entry = { id: Date.now().toString(36) + Math.random().toString(36).slice(2,6), name, ...lastRun };
+      list.push(entry); ranks = sortRanks(list);
+      await saveRanks(ranks);
+      submitted = true; myId = entry.id;
+      const pos = ranks.findIndex(x => x.id === entry.id) + 1;
+      entryMsg(pos ? 'Eingetragen auf Platz ' + pos + '.' : 'Für die Top ' + RANK_MAX + ' hat es diesmal nicht gereicht.');
+      renderRanks(); $('ovBtn').focus({preventScroll:true});
+    } catch(err){
+      $('btnSend').disabled = false;
+      entryMsg('Eintragen fehlgeschlagen (' + err.message + '). Nochmals versuchen?');
+    }
+  });
+
+  function reset(){
+    trains = []; effects = []; queue = [makeSpec(), makeSpec(), makeSpec()];
+    score = 0; misses = 0; level = 1; spawnT = 1.0; shake = 0;
+    switches.forEach(s => { s.state = 0; s.flash = 0; s.deny = 0; });
+    updateHud(); renderQueue();
+  }
+  function start(){
+    ensureAudio(); reset(); state = 'play'; hideOverlay();
+    $('entryForm').hidden = true;
+    $('pauseBtn').textContent = 'Pause';
+    tick('Schicht begonnen. Erster Zug wird angemeldet.');
+  }
+  function pause(){
+    if (state !== 'play') return;
+    state = 'pause'; $('pauseBtn').textContent = 'Weiter'; showOverlay('pause');
+  }
+  function resume(){
+    if (state !== 'pause') return;
+    ensureAudio(); state = 'play'; $('pauseBtn').textContent = 'Pause'; hideOverlay(); last = performance.now();
+  }
+  function endGame(){
+    state = 'over';
+    if (score > best){ best = score; try { localStorage.setItem('stellwerk.best', String(best)); } catch(e) {} }
+    setTimeout(() => showOverlay('over'), 800);
+  }
+
+  // Bedienung
+  $('ovBtn').addEventListener('click', () => { if (state === 'pause') resume(); else start(); });
+  $('pauseBtn').addEventListener('click', () => { if (state === 'play') pause(); else if (state === 'pause') resume(); });
+  $('soundBtn').addEventListener('click', e => {
+    soundOn = !soundOn; ensureAudio();
+    e.currentTarget.textContent = soundOn ? 'Ton an' : 'Ton aus';
+    e.currentTarget.setAttribute('aria-pressed', String(soundOn));
+  });
+  function nearestSwitch(clientX, clientY){
+    const r = cv.getBoundingClientRect();
+    const [gx,gy] = G(clientX - r.left, clientY - r.top);
+    let bi = -1, bd = 1.05;
+    switches.forEach((s,i) => { const d = Math.hypot(s.x-gx, s.y-gy); if (d < bd){ bd = d; bi = i; } });
+    return bi;
+  }
+  cv.addEventListener('pointerdown', e => {
+    if (state !== 'play') return;
+    const i = nearestSwitch(e.clientX, e.clientY);
+    if (i >= 0){ e.preventDefault(); toggle(i); }
+  });
+  cv.addEventListener('pointermove', e => {
+    cv.style.cursor = state === 'play' && nearestSwitch(e.clientX, e.clientY) >= 0 ? 'pointer' : 'default';
+  });
+  window.addEventListener('keydown', e => {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (rankViewOpen){ if (e.key === 'Escape') closeRanks(); return; }
+    if (e.target.tagName === 'INPUT') return;
+    const k = e.key.toLowerCase();
+    const idx = 'abcde'.indexOf(k);
+    if (idx >= 0 && k.length === 1){ toggle(idx); e.preventDefault(); return; }
+    if ((k === 'p' || k === 'escape') ){ if (state === 'play') pause(); else if (state === 'pause') resume(); }
+    if (k === ' ' && e.target.tagName !== 'BUTTON'){
+      e.preventDefault();
+      if (state === 'play') pause(); else if (state === 'pause') resume(); else start();
+    }
+  });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });
+
+  // Startbild: zwei Züge unterwegs, damit das Pult nicht leer wirkt
+  function demo(){
+    queue = [makeSpec(), makeSpec(), makeSpec()]; renderQueue();
+    switches[0].state = 0; switches[1].state = 1;
+    const a = newTrain({dest:2, color:COLORS[2], name:'IR 2317'}); a.s = 9.2; extend(a);
+    switches[0].state = 1; switches[2].state = 0;
+    const b = newTrain({dest:3, color:COLORS[3], name:'S 31'}); b.s = 3.6; extend(b);
+    trains = [a, b];
+    $('ovBest').textContent = best > 0 ? `Bestwert: ${best} Züge` : '';
+    loadRanks();
+  }
+
+  let last = performance.now();
+  function frame(now){
+    const dt = Math.min(0.05, (now - last)/1000); last = now;
+    if (state === 'play') step(dt);
+    for (const s of switches){ s.flash = Math.max(0, s.flash - dt*3); s.deny = Math.max(0, s.deny - dt); }
+    for (const e of effects) e.t += dt;
+    effects = effects.filter(e => e.t < 0.9);
+    shake = Math.max(0, shake - dt);
+    draw();
+    requestAnimationFrame(frame);
+  }
+
+  new ResizeObserver(() => layout()).observe($('stage'));
+  layout(); demo(); requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

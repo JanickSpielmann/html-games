@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="de-CH">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Winkel Games</title>
+<meta name="description" content="Alle Browsergames auf einen Blick">
+<link rel="icon" href="Thermik/thermik-icon.svg" type="image/svg+xml">
+<style>
+  :root {
+    --bg: #14161a;
+    --surface: #1d2026;
+    --surface-hover: #252a32;
+    --line: #2f343d;
+    --text: #eef0f3;
+    --muted: #9aa3b0;
+    --accent: #e8402f;
+    --radius: 16px;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --bg: #f4f2ee;
+      --surface: #ffffff;
+      --surface-hover: #fbfaf8;
+      --line: #dedad2;
+      --text: #1b1d21;
+      --muted: #666d78;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { color-scheme: light dark; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 56px 16px 40px; }
+  header { margin-bottom: 36px; }
+  .kicker {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 13px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--muted); font-weight: 600;
+  }
+  .kicker::before {
+    content: ""; width: 10px; height: 10px; border-radius: 3px; background: var(--accent);
+  }
+  h1 { font-size: clamp(34px, 6vw, 56px); line-height: 1.05; margin: 12px 0 10px; letter-spacing: -.02em; }
+  header p { margin: 0; color: var(--muted); max-width: 52ch; font-size: 17px; }
+
+  .grid {
+    display: grid; gap: 14px;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    list-style: none; padding: 0; margin: 0;
+  }
+  .card {
+    display: flex; gap: 16px; align-items: flex-start;
+    height: 100%; padding: 16px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    color: inherit; text-decoration: none;
+    transition: transform .15s ease, background .15s ease, border-color .15s ease;
+  }
+  .card:hover { background: var(--surface-hover); border-color: var(--accent); transform: translateY(-2px); }
+  .card:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .icon {
+    flex: none; width: 72px; height: 72px; border-radius: 16px; overflow: hidden;
+    background: var(--line); display: grid; place-items: center;
+  }
+  .icon img { width: 100%; height: 100%; display: block; object-fit: cover; }
+  .icon.letter { font-size: 34px; font-weight: 800; color: #fff; background: linear-gradient(135deg, #3b6fd4, #1d3f8f); }
+  .body { min-width: 0; }
+  .name { font-size: 20px; font-weight: 700; margin: 2px 0 4px; letter-spacing: -.01em; }
+  .desc { margin: 0 0 10px; color: var(--muted); font-size: 14.5px; }
+  .tag {
+    display: inline-block; font-size: 12px; font-weight: 600; padding: 3px 9px;
+    border-radius: 999px; border: 1px solid var(--line); color: var(--muted);
+  }
+  footer { margin-top: 40px; color: var(--muted); font-size: 13px; }
+  @media (prefers-reduced-motion: reduce) { .card { transition: none; } .card:hover { transform: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="kicker">Winkel Games</span>
+    <h1>Alle Spiele,<br>ein Browser.</h1>
+    <p>Alles läuft direkt im Browser, am Computer mit Tastatur oder Maus und am Handy mit Touch.</p>
+  </header>
+
+  <ul class="grid" id="grid"></ul>
+
+  <footer><span id="count"></span> · gehostet im Winkel</footer>
+</div>
+
+<script>
+  // Neues Spiel? Einfach hier einen Eintrag ergänzen.
+  const games = [
+    { name: "Hagelflieger",  path: "Hagelflieger/hagelflieger.html",   icon: "Hagelflieger/hagelflieger-icon.svg",
+      desc: "Impfe Gewitterwolken über dem Genfersee und rette die Reben vor dem Hagel.", tag: "Action" },
+    { name: "Hornusser",     path: "Hornusser/hornusser.html",         icon: "Hornusser/hornusser-icon.svg",
+      desc: "Schlag den Nouss ins Ries und hol dir Nummern, Wind inklusive.", tag: "Geschicklichkeit" },
+    { name: "Kintsugi",      path: "Kintsugi/kintsugi.html",           icon: "Kintsugi/kintsugi-icon.svg",
+      desc: "Zerbrich sieben Teeschalen und setze die Scherben mit Gold wieder zusammen.", tag: "Puzzle" },
+    { name: "Leuchtfeuer",   path: "Leuchtfeuer/leuchtfeuer.html",     icon: "Leuchtfeuer/leuchtfeuer-icon.svg",
+      desc: "Nachtwache im Leuchtturm: Lotse Schiffe mit dem Lichtstrahl an den Klippen vorbei.", tag: "Reaktion" },
+    { name: "Pulverschnee",  path: "Pulverschnee/pulverschnee-online.html", icon: "Pulverschnee/pulverschnee-icon.svg",
+      desc: "Fahr den Slalom durch die Tore und weich Bäumen und Felsen aus.", tag: "Rennen" },
+    { name: "Réduit",        path: "Reduit/reduit.html",               icon: "Reduit/reduit-icon.svg",
+      desc: "Halte die Festung am Gotthard gegen Drohnen und Kampfroboter, Welle um Welle.", tag: "Shooter" },
+    { name: "Semesterlauf",  path: "Semesterlauf/semesterlauf.html",   icon: "Semesterlauf/semesterlauf-icon.svg",
+      desc: "Renn durchs Studium, sammle ECTS und spring über Deadlines.", tag: "Jump and Run" },
+    { name: "Steinmannli",   path: "Steinmannli/steinmannli.html",     icon: "Steinmannli/steinmannli-icon.svg",
+      desc: "Stapel die Steine sauber aufeinander. Was übersteht, bricht ab.", tag: "Geschicklichkeit" },
+    { name: "Stellwerk",     path: "Stellwerk/stellwerk.html",         icon: "Stellwerk/stellwerk-icon.svg",
+      desc: "Stell die Weichen so, dass jeder Zug sein Zielgleis erreicht.", tag: "Reaktion" },
+    { name: "Thermik",       path: "Thermik/thermik.html",             icon: "Thermik/thermik-icon.svg",
+      desc: "Flieg mit dem Gleitschirm über die Alpen und fang jeden Aufwind.", tag: "Flug" },
+    { name: "Wintervorrat",  path: "Wintervorrat/wintervorrat.html",   icon: "Wintervorrat/wintervorrat-icon.svg",
+      desc: "Versteck genug Nüsse vor dem ersten Schnee, trotz Mäusen, Krähen und Marder.", tag: "Strategie" }
+  ];
+
+  const grid = document.getElementById("grid");
+  for (const g of games) {
+    const li = document.createElement("li");
+    const a = document.createElement("a");
+    a.className = "card";
+    a.href = g.path;
+
+    const icon = document.createElement("div");
+    icon.className = "icon";
+    if (g.icon) {
+      const img = document.createElement("img");
+      img.src = g.icon; img.alt = ""; img.loading = "lazy";
+      img.onerror = () => { icon.className = "icon letter"; icon.textContent = g.name[0]; };
+      icon.appendChild(img);
+    } else {
+      icon.className = "icon letter"; icon.textContent = g.name[0];
+    }
+
+    const body = document.createElement("div");
+    body.className = "body";
+    body.innerHTML = '<div class="name"></div><p class="desc"></p><span class="tag"></span>';
+    body.querySelector(".name").textContent = g.name;
+    body.querySelector(".desc").textContent = g.desc;
+    body.querySelector(".tag").textContent = g.tag;
+
+    a.append(icon, body);
+    li.appendChild(a);
+    grid.appendChild(li);
+  }
+  document.getElementById("count").textContent = games.length + " Spiele";
+</script>
+</body>
+</html>

@@ -1,0 +1,1203 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Pulverschnee</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%2313213B%22/%3E%3Cpath%20d%3D%22M12%200C12%2014%2040%2010%2040%2024S24%2034%2024%2044%2038%2056%2038%2064%22%20fill%3D%22none%22%20stroke%3D%22%23EEF3F8%22%20stroke-width%3D%225.5%22%20stroke-linecap%3D%22round%22/%3E%3Cpath%20d%3D%22M12%200C12%2014%2040%2010%2040%2024S24%2034%2024%2044%2038%2056%2038%2064%22%20fill%3D%22none%22%20stroke%3D%22%2313213B%22%20stroke-width%3D%221.6%22/%3E%3Cpath%20d%3D%22M48%209v19%22%20stroke%3D%22%23EEF3F8%22%20stroke-width%3D%222.5%22%20stroke-linecap%3D%22round%22/%3E%3Cpath%20d%3D%22M48%209h11v9H48z%22%20fill%3D%22%23D7262B%22/%3E%3Cpath%20d%3D%22M15%2033v19%22%20stroke%3D%22%23EEF3F8%22%20stroke-width%3D%222.5%22%20stroke-linecap%3D%22round%22/%3E%3Cpath%20d%3D%22M15%2033H4v9h11z%22%20fill%3D%22%231E5DC0%22/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bowlby+One&family=Saira+Condensed:wght@500;700&family=Saira:wght@400;600&display=swap">
+<style>
+/* Layout: one portrait race lane, timing board above, two big steering pads below. Single committed snow look. */
+:root{
+  --snow:#EEF3F8;
+  --white:#FBFDFF;
+  --deep:#D6E1EC;
+  --ink:#13213B;
+  --muted:#5B6B82;
+  --red:#D7262B;
+  --blue:#1E5DC0;
+  --pine:#24503F;
+  --veil:rgba(238,243,248,.88);
+  --display:"Bowlby One","Arial Black",Impact,sans-serif;
+  --body:"Saira",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --board:"Saira Condensed","Arial Narrow","Roboto Condensed",sans-serif;
+  color-scheme:light;
+}
+[hidden]{display:none !important}
+*,*::before,*::after{box-sizing:border-box}
+html,body{min-height:100%;margin:0}
+body{
+  background:var(--snow);color:var(--ink);font-family:var(--body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:12px;box-sizing:border-box;
+  display:flex;justify-content:center;
+}
+.app{width:100%;max-width:820px;display:flex;flex-direction:column;gap:10px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.brand{font-family:var(--display);font-size:20px;letter-spacing:.01em;margin:0;line-height:1}
+.brand span span{color:var(--red)}
+.brand{display:flex;align-items:center;gap:8px}
+.logo{width:30px;height:30px;flex:none}
+.bestTop{font-family:var(--board);font-size:15px;color:var(--muted);font-variant-numeric:tabular-nums}
+.meta{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.snd{display:inline-flex;align-items:center;gap:5px;border:1.5px solid var(--ink);background:var(--white);color:var(--ink);border-radius:4px;padding:2px 7px;font-family:var(--board);font-weight:700;font-size:13px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer}
+.snd svg{width:13px;height:13px;fill:currentColor}
+.snd[aria-pressed="false"]{color:var(--muted);border-color:var(--deep);text-decoration:line-through}
+@media (max-width:480px){.snd span{display:none}.bestTop{display:none}}
+.lvl{font-family:var(--board);font-weight:700;font-size:14px;letter-spacing:.06em;text-transform:uppercase;background:var(--ink);color:var(--white);padding:1px 8px;border-radius:3px;font-variant-numeric:tabular-nums}
+.board{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  background:var(--ink);color:var(--white);border-radius:6px;overflow:hidden;
+}
+.cell{padding:6px 10px 5px;display:flex;flex-direction:column;gap:0;min-width:0}
+.cell + .cell{box-shadow:inset 1px 0 0 rgba(251,253,255,.14)}
+.lbl{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:#9FB0C8}
+.val{font-family:var(--board);font-weight:700;font-size:24px;line-height:1.1;font-variant-numeric:tabular-nums;white-space:nowrap}
+.val small{font-weight:500;font-size:14px;color:#9FB0C8;margin-left:2px}
+.lives{display:flex;gap:5px;align-items:center;height:26px}
+.life{width:11px;height:11px;border-radius:50%;background:var(--red);box-shadow:0 0 0 2px rgba(251,253,255,.25)}
+.life.off{background:transparent;box-shadow:inset 0 0 0 2px #4A5B77}
+
+.lane{
+  position:relative;margin-inline:auto;aspect-ratio:5/4;max-width:100%;
+  width:min(100%, calc((100vh - 240px) * 1.25));
+  width:min(100%, calc((100dvh - 240px) * 1.25));
+  min-width:min(100%,250px);
+  border-radius:8px;overflow:hidden;box-shadow:0 0 0 2px var(--ink);background:var(--snow);
+}
+canvas{display:block;width:100%;height:100%;touch-action:none}
+.overlay{position:absolute;inset:0;display:flex;overflow-y:auto;background:var(--veil);padding:16px;box-sizing:border-box}
+.card{margin:auto;max-width:290px;width:100%;display:flex;flex-direction:column;gap:12px}
+.card h1,.card h2{font-family:var(--display);font-weight:400;margin:0;line-height:.95;text-wrap:balance}
+.card h1{font-size:42px}
+.card h2{font-size:34px}
+.card p{margin:0;line-height:1.45;font-size:14.5px}
+.card .note{color:var(--muted);font-size:13px}
+.gates{display:flex;gap:8px;align-items:center;font-family:var(--board);font-size:14px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.flag{width:14px;height:10px;border-radius:1px}
+.flag.r{background:var(--red)}.flag.b{background:var(--blue)}
+.stats{margin:0;display:grid;grid-template-columns:auto 1fr auto 1fr;gap:2px 10px;font-family:var(--board);font-size:16px;font-variant-numeric:tabular-nums}
+.stats dt{color:var(--muted)}
+.stats dd{margin:0;font-weight:700;text-align:right}
+.badge{align-self:flex-start;background:var(--blue);color:var(--white);font-family:var(--board);font-weight:700;font-size:13px;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:3px}
+.go{
+  align-self:flex-start;background:var(--red);color:var(--white);border:0;border-radius:6px;
+  font-family:var(--board);font-weight:700;font-size:20px;letter-spacing:.08em;text-transform:uppercase;
+  padding:11px 22px;cursor:pointer;
+}
+.go:hover{filter:brightness(1.08)}
+button:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
+
+.pad{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pad button{
+  height:56px;border:2px solid var(--ink);background:var(--white);color:var(--ink);border-radius:8px;
+  font-family:var(--board);font-weight:700;font-size:18px;letter-spacing:.1em;text-transform:uppercase;
+  touch-action:none;user-select:none;-webkit-user-select:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+}
+.pad button.down{background:var(--ink);color:var(--white)}
+.pad svg{width:14px;height:14px;fill:currentColor}
+.hint{margin:0;text-align:center;font-size:12px;color:var(--muted)}
+@media (hover:none){.hint{display:none}}
+
+.entry{display:flex;flex-direction:column;gap:6px}
+.entry label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+.entryRow{display:flex;gap:8px}
+.entry input{
+  flex:1;min-width:0;font-family:var(--body);font-size:16px;padding:7px 10px;
+  border:2px solid var(--ink);border-radius:6px;background:var(--white);color:var(--ink);
+}
+.entry input:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.send{
+  border:2px solid var(--ink);background:var(--ink);color:var(--white);border-radius:6px;
+  font-family:var(--board);font-weight:700;font-size:15px;letter-spacing:.08em;text-transform:uppercase;
+  padding:0 12px;cursor:pointer;
+}
+.send:disabled{opacity:.45;cursor:default}
+.entryMsg{font-size:13px !important;color:var(--muted);min-height:1.2em}
+
+.ranks{border-top:2px solid var(--ink);padding-top:10px;display:flex;flex-direction:column;gap:6px}
+.ranksHead{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.ranks h2{font-family:var(--display);font-weight:400;font-size:20px;margin:0}
+.reload{background:none;border:0;padding:0;color:var(--blue);font-family:var(--body);font-size:13px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.rankStatus{margin:0;font-size:13px;color:var(--muted);line-height:1.4}
+.rankList{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.rankList li{
+  display:grid;grid-template-columns:2.2em minmax(0,1fr) auto 4.6em;gap:10px;align-items:baseline;
+  padding:6px 6px;border-bottom:1px solid var(--deep);
+  font-family:var(--board);font-size:17px;font-variant-numeric:tabular-nums;
+}
+.rankList .pos{color:var(--muted);font-weight:700}
+.rankList li:first-child .pos{color:var(--red)}
+.rankList .nm{font-family:var(--body);font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rankList .pts{font-weight:700}
+.rankList .m{color:var(--muted);font-size:15px;text-align:right}
+.card.wide{max-width:600px;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:16px 28px;align-items:center}
+.intro{display:flex;flex-direction:column;gap:12px;min-width:0}
+.startRanks{display:flex;flex-direction:column;gap:6px;min-width:0;background:var(--white);border:2px solid var(--ink);border-radius:8px;padding:10px 12px}
+.startHead{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.tabs{display:inline-flex;border:1.5px solid var(--ink);border-radius:5px;overflow:hidden;flex:none}
+.tab{border:0;background:var(--white);color:var(--ink);font-family:var(--board);font-weight:700;font-size:12px;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;cursor:pointer}
+.tab.on{background:var(--ink);color:var(--white)}
+.tab:focus-visible{outline:3px solid var(--blue);outline-offset:1px}
+.startRanks h3{font-family:var(--display);font-weight:400;font-size:20px;margin:0}
+.startRanks .rankList li{grid-template-columns:1.8em minmax(0,1fr) auto;padding:5px 4px;font-size:17px}
+.startRanks .rankList li:last-child{border-bottom:0}
+.startRanks .m{display:none}
+.startRanks .openRanks{align-self:flex-start;margin-top:2px}
+.rankList .lv,.rankList .dt{display:none}
+#ovRanks{max-width:620px;height:100%;margin:0 auto;gap:8px}
+.fullHead{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.fullHead .send{height:36px}
+.fullScroll{flex:1;min-height:0;overflow-y:auto;background:var(--white);border:2px solid var(--ink);border-radius:8px;padding:2px 8px}
+.fullCols,.rankList.full li{display:grid;grid-template-columns:38px minmax(0,1fr) 60px 72px 44px 74px;gap:10px;align-items:baseline}
+.fullCols{padding:0 16px;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.fullCols span:nth-child(n+3),.rankList.full .pts,.rankList.full .m,.rankList.full .lv,.rankList.full .dt{text-align:right}
+.rankList.full .lv,.rankList.full .dt{display:block;color:var(--muted);font-size:15px}
+.rankList.full li:last-child{border-bottom:0}
+@media (max-width:640px){
+  .fullCols,.rankList.full li{grid-template-columns:34px minmax(0,1fr) 54px 66px}
+  .fullCols span:nth-child(n+5),.rankList.full .lv,.rankList.full .dt{display:none}
+}
+@media (max-width:640px){
+  .card.wide{grid-template-columns:1fr;align-items:start}
+  #ovStart .note{display:none}
+}
+.rankList li.me{background:rgba(245,194,27,.28);border-radius:4px}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="top">
+    <p class="brand"><svg class="logo" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#13213B"/><path d="M12 0C12 14 40 10 40 24S24 34 24 44 38 56 38 64" fill="none" stroke="#EEF3F8" stroke-width="5.5" stroke-linecap="round"/><path d="M12 0C12 14 40 10 40 24S24 34 24 44 38 56 38 64" fill="none" stroke="#13213B" stroke-width="1.6"/><path d="M48 9v19" stroke="#EEF3F8" stroke-width="2.5" stroke-linecap="round"/><path d="M48 9h11v9H48z" fill="#D7262B"/><path d="M15 33v19" stroke="#EEF3F8" stroke-width="2.5" stroke-linecap="round"/><path d="M15 33H4v9h11z" fill="#1E5DC0"/></svg><span>Pulver<span>schnee</span></span></p>
+    <span class="meta"><button class="snd" id="btnMusic" type="button" aria-pressed="true" title="Musik ein oder aus (Taste M)"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2v8.3A2.5 2.5 0 1 0 7.5 12.5V5.2L13 4v5.3A2.5 2.5 0 1 0 14.5 11.5V1Z"/></svg><span>Musik</span></button><button class="snd" id="btnSfx" type="button" aria-pressed="true" title="Effekte ein oder aus"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 6h3l4-3.5v11L5 10H2Z"/><path d="M11 5.5a3.5 3.5 0 0 1 0 5M12.5 3.5a6 6 0 0 1 0 9" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg><span>Ton</span></button><span class="lvl" id="level">Level 1</span><span class="bestTop" id="bestTop">Bestwert 0</span></span>
+  </div>
+
+  <div class="board" role="status" aria-live="off">
+    <div class="cell"><span class="lbl">Punkte</span><span class="val" id="score">0</span></div>
+    <div class="cell"><span class="lbl">Strecke</span><span class="val"><span id="meters">0</span><small>m</small></span></div>
+    <div class="cell"><span class="lbl">Tempo</span><span class="val"><span id="kmh">0</span><small>km/h</small></span></div>
+    <div class="cell"><span class="lbl">Leben</span><span class="lives" id="lives"><i class="life"></i><i class="life"></i><i class="life"></i></span></div>
+  </div>
+
+  <div class="lane">
+    <canvas id="game" width="600" height="480" aria-label="Skipiste mit Slalomtoren"></canvas>
+    <div class="overlay" id="overlay">
+      <div class="card wide" id="ovStart">
+        <div class="intro">
+          <h1>Pulver&shy;schnee</h1>
+          <p>Fahr durch die Tore und weich Bäumen, Felsen und dem Pistenrand aus. Wer ein Tor verpasst oder stürzt, verliert ein Leben. Herzen auf der Piste geben eins zurück.</p>
+          <div class="gates"><i class="flag r"></i><i class="flag b"></i>Rot und Blau im Wechsel</div>
+          <p class="note">Alle 300 m beginnt ein neues Level mit mehr Tempo und engeren Toren. Durchfahrene Tore werden gelb. Zehn Tore in Serie geben ein Leben zurück.</p>
+          <button class="go" id="btnStart">Start</button>
+        </div>
+        <div class="startRanks">
+          <div class="startHead"><h3>Top 5</h3><div class="tabs" role="group" aria-label="Zeitraum"><button class="tab on" type="button" data-tab="all" aria-pressed="true">Allzeit</button><button class="tab" type="button" data-tab="day" aria-pressed="false">Heute</button></div></div>
+          <p class="rankStatus" id="startRankStatus">Bestenliste lädt</p>
+          <ol class="rankList" id="startRankList"></ol>
+          <button class="reload openRanks" type="button">Top 150 anzeigen</button>
+        </div>
+      </div>
+      <div class="card" id="ovPause" hidden>
+        <h2>Pause</h2>
+        <p>Das Rennen wartet auf dich.</p>
+        <button class="go" id="btnResume">Weiter</button>
+      </div>
+      <div class="card wide" id="ovOver" hidden>
+        <div class="intro">
+        <h2>Ausge&shy;schieden</h2>
+        <span class="badge" id="newBest" hidden>Neuer Bestwert</span>
+        <dl class="stats">
+          <dt>Punkte</dt><dd id="finScore">0</dd>
+          <dt>Strecke</dt><dd id="finMeters">0 m</dd>
+          <dt>Schnitt</dt><dd id="finAvg">0 km/h</dd>
+          <dt>Topspeed</dt><dd id="finTop">0 km/h</dd>
+          <dt>Level</dt><dd id="finLevel">1</dd>
+          <dt>Tore</dt><dd id="finGates">0</dd>
+          <dt>Bestwert</dt><dd id="finBest">0</dd>
+        </dl>
+        <form class="entry" id="entryForm" autocomplete="off">
+          <label for="playerName">Name für die Bestenliste</label>
+          <div class="entryRow">
+            <input id="playerName" name="playerName" maxlength="16" placeholder="Dein Name">
+            <button class="send" id="btnSend" type="submit">Eintragen</button>
+          </div>
+          <p class="entryMsg" id="entryMsg" aria-live="polite"></p>
+        </form>
+        <button class="go" id="btnAgain">Nochmals fahren</button>
+        </div>
+        <div class="startRanks">
+          <div class="startHead"><h3>Top 5</h3><div class="tabs" role="group" aria-label="Zeitraum"><button class="tab on" type="button" data-tab="all" aria-pressed="true">Allzeit</button><button class="tab" type="button" data-tab="day" aria-pressed="false">Heute</button></div></div>
+          <p class="rankStatus" id="overRankStatus">Bestenliste lädt</p>
+          <ol class="rankList" id="overRankList"></ol>
+          <button class="reload openRanks" type="button">Top 150 anzeigen</button>
+        </div>
+      </div>
+      <div class="card fullCard" id="ovRanks" hidden>
+        <div class="fullHead">
+          <h2 id="fullTitle">Top 150 Allzeit</h2>
+          <button class="send" id="btnCloseRanks" type="button">Zurück</button>
+        </div>
+        <div class="fullCols" aria-hidden="true"><span>Platz</span><span>Name</span><span>Punkte</span><span>Strecke</span><span>Level</span><span>Datum</span></div>
+        <p class="rankStatus" id="fullRankStatus">Bestenliste lädt</p>
+        <div class="fullScroll" id="fullScroll"><ol class="rankList full" id="fullRankList"></ol></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pad">
+    <button id="padL" aria-label="Nach links"><svg viewBox="0 0 10 10"><path d="M7 0 L1 5 L7 10 Z"/></svg>Links</button>
+    <button id="padR" aria-label="Nach rechts">Rechts<svg viewBox="0 0 10 10"><path d="M3 0 L9 5 L3 10 Z"/></svg></button>
+  </div>
+  <p class="hint">Tastatur: Pfeiltasten oder A und D, Leertaste zum Starten, P für Pause, M für Musik</p>
+</div>
+
+<script>
+(() => {
+  /* ===== Bestenliste über die eigene API ===== */
+  const LB_URL='/api/pulverschnee';
+  const RANK_MAX = 150;
+  /* ======================================================== */
+
+  const W = 600, H = 480, MAXV = 260;
+  const TURN_DRAG = 0.8;
+  const ACCEL = 1.5;         // wie schnell das Tempo zurückkommt (vorher 0.9)    // Bremswirkung in Kurven, 0 schaltet sie aus
+  const DENSITY = 360 / W;   // gleiche Hindernisdichte wie auf der schmalen Piste
+  const C = {
+    snow:'#EEF3F8', deep:'#D6E1EC', corduroy:'rgba(190,206,224,.30)', track:'#C3D2E2',
+    ink:'#13213B', muted:'#5B6B82', red:'#D7262B', blue:'#1E5DC0',
+    yellow:'#F5C21B', yellowEdge:'#B88A00', wood:'#8A5A3B', woodDark:'#4E3122',
+    pine:'#24503F', pine2:'#2F6A52', trunk:'#5A3B2A', rock:'#7D8B9D', cap:'#FBFDFF', jacket:'#D7262B'
+  };
+  const cv = document.getElementById('game');
+  const ctx = cv.getContext('2d');
+  const $ = id => document.getElementById(id);
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  let best = 0;
+  try { best = parseInt(localStorage.getItem('pulverschnee.best') || '0', 10) || 0; } catch (e) {}
+
+  const keys = { l:false, r:false, bl:false, br:false, tl:false, tr:false };
+  let state = 'ready', g = null, last = 0;
+
+  const rand = (a, b) => a + Math.random() * (b - a);
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const specks = Array.from({ length: 110 }, () => ({ x: Math.random() * W, y: Math.random() * H, r: rand(.6, 1.6) }));
+
+  const LEVEL_M = 300;
+  const levelAt = m => 1 + Math.floor(m / LEVEL_M);
+  const diff = () => Math.min(1, (g.level - 1) / 8);
+
+  function addGate(y) {
+    const d = diff();
+    const gap = 120 - 46 * d;
+    let x = g.lastGateX + g.side * rand(60, 160);
+    if (x < 70 || x > W - 70) { g.side *= -1; x = g.lastGateX + g.side * rand(60, 160); }
+    x = clamp(x, 70, W - 70);
+    g.side *= -1;
+    g.lastGateX = x;
+    // Hindernisse im Torkorridor entfernen, damit jedes Tor fahrbar bleibt
+    g.objs = g.objs.filter(o => !((o.type === 'tree' || o.type === 'rock') && Math.abs(o.y - y) < 55 && Math.abs(o.x - x) < gap / 2 + 24));
+    g.objs.push({ type:'gate', x, y, gap, color: g.gateCount % 2 ? C.blue : C.red, done:false, ok:false });
+    g.gateCount++;
+  }
+
+  function addObstacle(y) {
+    const x = rand(36, W - 36);
+    for (const o of g.objs) {
+      if (o.type === 'gate' && Math.abs(o.y - y) < 55 && Math.abs(o.x - x) < o.gap / 2 + 24) return;
+      if ((o.type === 'tree' || o.type === 'rock' || o.type === 'heart') && Math.hypot(o.x - x, o.y - y) < 42) return;
+    }
+    if (nearChalet(x, y, 30)) return;
+    if (Math.random() < .62) {
+      g.objs.push({ type:'tree', x, y, s: rand(24, 34) });
+    } else {
+      const s = rand(9, 14);
+      const pts = Array.from({ length: 7 }, (_, i) => ({ a: i / 7 * Math.PI * 2, r: s * rand(.75, 1.1) }));
+      g.objs.push({ type:'rock', x, y, s, pts });
+    }
+  }
+
+  // Chalet: Grundriss als Rechteck, y ist die Unterkante
+  const chaletBox = o => ({ l: o.x - o.s * .52, r: o.x + o.s * .52, t: o.y - o.s * .6, b: o.y + 2 });
+  function nearChalet(x, y, pad) {
+    return g.objs.some(o => {
+      if (o.type !== 'chalet') return false;
+      const b = chaletBox(o);
+      return x > b.l - pad && x < b.r + pad && y > b.t - pad && y < b.b + pad;
+    });
+  }
+  function addChalet(y) {
+    const s = rand(44, 52);
+    // zwischen zwei Toren platzieren, damit jedes Tor fahrbar bleibt
+    const nextGateY = H + 30 + g.gateIn;
+    const lastGate = g.objs.filter(o => o.type === 'gate').reduce((m, o) => (o.y > (m ? m.y : -1e9) ? o : m), null);
+    if (nextGateY - y < 70) return false;
+    if (lastGate && lastGate.y > y - s * .95 - 40) return false;
+    for (let i = 0; i < 10; i++) {
+      const x = rand(80, W - 80);
+      const o = { type:'chalet', x, y, s, smoke: Math.random() * 10 };
+      const b = chaletBox(o);
+      // Bäume, Felsen und Herzen im Weg entfernen
+      g.objs = g.objs.filter(q => !((q.type === 'tree' || q.type === 'rock' || q.type === 'heart') &&
+        q.x > b.l - 26 && q.x < b.r + 26 && q.y > b.t - 50 && q.y < b.b + 30));
+      g.objs.push(o);
+      return true;
+    }
+    return false;
+  }
+
+  function addEdge(y) {
+    g.objs.push({ type:'edge', x: rand(-4, 10), y: y + rand(-4, 4), s: rand(22, 32) });
+    g.objs.push({ type:'edge', x: W - rand(-4, 10), y: y + rand(-4, 4), s: rand(22, 32) });
+  }
+
+  function addHeart(y) {
+    for (let i = 0; i < 8; i++) {
+      const x = rand(50, W - 50);
+      const blocked = g.objs.some(o =>
+        ((o.type === 'tree' || o.type === 'rock') && Math.hypot(o.x - x, o.y - y) < 40) ||
+        (o.type === 'gate' && Math.abs(o.y - y) < 30 && Math.abs(Math.abs(x - o.x) - o.gap / 2) < 18));
+      if (!blocked && !nearChalet(x, y, 24)) { g.objs.push({ type:'heart', x, y }); return; }
+    }
+  }
+
+  function reset() {
+    g = {
+      px: W / 2, vx: 0, py: 140, speed: 150, score: 0, meters: 0, lives: 3,
+      combo: 0, streak: 0, passed: 0, gatesDone: 0, runTime: 0, runDist: 0, topSpeed: 0, level: 1, banner: 0, inv: 0, shake: 0, flash: 0, endT: 0,
+      objs: [], trail: [], texts: [],
+      gateIn: 0, obsIn: 0, edgeIn: 0,
+      side: Math.random() < .5 ? 1 : -1, lastGateX: W / 2, gateCount: 0
+    };
+    for (let y = -20; y < H + 40; y += rand(10, 20)) addEdge(y);
+    // erste 20 m freie Piste: 10 px entsprechen 1 m
+    g.gateIn = 200; g.obsIn = 240; g.edgeIn = 10; g.heartIn = rand(700, 1100); g.chaletIn = rand(1200, 1800); g.time = 0;
+  }
+
+  /* ===== Sound: alles live mit Web Audio erzeugt, keine Audiodateien ===== */
+  const sound = (() => {
+    let ac = null, master, musicBus, sfxBus, carveGain, carveFilter;
+    let musicOn = true, sfxOn = true;
+    try {
+      musicOn = localStorage.getItem('pulverschnee.music') !== '0';
+      sfxOn = localStorage.getItem('pulverschnee.sfx') !== '0';
+    } catch (e) {}
+
+    const NOTE = { A1:55.00, F2:87.31, G2:98.00, A2:110.00, C3:130.81, D3:146.83, E3:164.81, F3:174.61, G3:196.00, A3:220.00, B3:246.94,
+      C4:261.63, D4:293.66, E4:329.63, F4:349.23, G4:392.00, A4:440.00, B4:493.88,
+      C5:523.25, D5:587.33, E5:659.25, F5:698.46, G5:783.99, A5:880.00, B5:987.77, C6:1046.5, D6:1174.7, E6:1318.5, G6:1568.0 };
+
+    // Eigener Elektro Pop Track im 4/4 Takt, Akkordfolge Am F C G
+    // Melodie in Achteln: [Startachtel, Ton, Länge in Achteln]
+    const MELODY = [
+      [[0,'E5',1],[1,'A5',2],[3,'G5',1],[4,'E5',2],[6,'D5',1],[7,'E5',1]],
+      [[0,'C5',2],[2,'A4',1],[3,'C5',1],[4,'F5',3],[7,'E5',1]],
+      [[0,'E5',1],[1,'G5',2],[3,'E5',1],[4,'C6',2],[6,'B5',1],[7,'G5',1]],
+      [[0,'D5',3],[3,'B4',1],[4,'D5',2],[6,'G5',2]],
+      [[0,'A5',1],[1,'A5',1],[2,'G5',1],[3,'E5',1],[4,'A5',2],[6,'C6',2]],
+      [[0,'C6',1],[1,'A5',2],[3,'F5',1],[4,'A5',2],[6,'G5',1],[7,'F5',1]],
+      [[0,'E5',2],[2,'G5',1],[3,'C6',1],[4,'B5',2],[6,'G5',2]],
+      [[0,'D6',3],[3,'B5',1],[4,'G5',4]]
+    ];
+    const CHORDS = [
+      { bass:'A2', pad:['A3','C4','E4'], arp:['A4','C5','E5','A5'] },
+      { bass:'F2', pad:['F3','A3','C4'], arp:['F4','A4','C5','F5'] },
+      { bass:'C3', pad:['G3','C4','E4'], arp:['C5','E5','G5','C6'] },
+      { bass:'G2', pad:['G3','B3','D4'], arp:['G4','B4','D5','G5'] }
+    ];
+
+    function init() {
+      if (ac) return true;
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return false;
+      try { ac = new AC(); } catch (e) { return false; }
+      master = ac.createGain(); master.gain.value = .8;
+      const comp = ac.createDynamicsCompressor();
+      master.connect(comp); comp.connect(ac.destination);
+      musicBus = ac.createGain(); musicBus.gain.value = musicOn ? .5 : 0; musicBus.connect(master);
+      sfxBus = ac.createGain(); sfxBus.gain.value = sfxOn ? .9 : 0; sfxBus.connect(master);
+      // Echo für die Lead Stimme
+      leadBus = ac.createGain(); leadBus.connect(musicBus);
+      delay = ac.createDelay(1); delay.delayTime.value = .34;
+      const fb = ac.createGain(); fb.gain.value = .32;
+      const wet = ac.createGain(); wet.gain.value = .28;
+      leadBus.connect(delay); delay.connect(fb); fb.connect(delay); delay.connect(wet); wet.connect(musicBus);
+
+      // Schneerauschen beim Carven
+      const len = ac.sampleRate * 2, buf = ac.createBuffer(1, len, ac.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+      noiseBuf = buf;
+      const src = ac.createBufferSource(); src.buffer = buf; src.loop = true;
+      carveFilter = ac.createBiquadFilter(); carveFilter.type = 'bandpass'; carveFilter.frequency.value = 1800; carveFilter.Q.value = .8;
+      carveGain = ac.createGain(); carveGain.gain.value = 0;
+      src.connect(carveFilter); carveFilter.connect(carveGain); carveGain.connect(sfxBus);
+      src.start();
+      return true;
+    }
+    let noiseBuf = null, leadBus = null, delay = null;
+
+    function unlock() {
+      if (!init()) return;
+      if (ac.state === 'suspended') ac.resume().catch(() => {});
+    }
+
+    function tone(freq, t, dur, { type = 'triangle', vol = .2, bus = sfxBus, attack = .005, glideTo = 0, cutoff = 0, hold = 0 } = {}) {
+      const o = ac.createOscillator(), gn = ac.createGain();
+      o.type = type; o.frequency.setValueAtTime(freq, t);
+      if (glideTo) o.frequency.exponentialRampToValueAtTime(glideTo, t + dur);
+      gn.gain.setValueAtTime(0, t);
+      gn.gain.linearRampToValueAtTime(vol, t + attack);
+      // hold: Anteil der Dauer, in dem der Ton voll klingt, bevor er ausklingt
+      if (hold) gn.gain.linearRampToValueAtTime(vol * .75, t + dur * hold);
+      gn.gain.exponentialRampToValueAtTime(.0001, t + dur);
+      let out = o;
+      if (cutoff) { const f = ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = cutoff; o.connect(f); out = f; }
+      out.connect(gn); gn.connect(bus);
+      o.start(t); o.stop(t + dur + .05);
+    }
+    function noise(t, dur, vol, cutoff) {
+      const src = ac.createBufferSource(); src.buffer = noiseBuf;
+      const f = ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.setValueAtTime(cutoff, t); f.frequency.exponentialRampToValueAtTime(120, t + dur);
+      const gn = ac.createGain(); gn.gain.setValueAtTime(vol, t); gn.gain.exponentialRampToValueAtTime(.0001, t + dur);
+      src.connect(f); f.connect(gn); gn.connect(sfxBus);
+      src.start(t, Math.random()); src.stop(t + dur + .05);
+    }
+    function hit(t, dur, vol, type, freq, bus) {
+      const src = ac.createBufferSource(); src.buffer = noiseBuf;
+      const f = ac.createBiquadFilter(); f.type = type; f.frequency.value = freq; f.Q.value = type === 'bandpass' ? 1.2 : .7;
+      const gn = ac.createGain(); gn.gain.setValueAtTime(vol, t); gn.gain.exponentialRampToValueAtTime(.0001, t + dur);
+      src.connect(f); f.connect(gn); gn.connect(bus);
+      src.start(t, Math.random()); src.stop(t + dur + .05);
+    }
+    const ready = () => ac && ac.state === 'running';
+
+    /* Musik: Sechzehntel Raster mit Vorausplanung, Tempo steigt mit dem Level */
+    let playing = false, timer = null, nextStep = 0, stepIdx = 0, bpm = 132;
+    function scheduleStep(t, i) {
+      const s16 = 60 / bpm / 4, step = i % 16, barNo = Math.floor(i / 16);
+      const ch = CHORDS[barNo % 4];
+      // Kick auf jeden Schlag
+      if (step % 4 === 0) tone(150, t, .28, { type:'sine', vol:.95, bus:musicBus, glideTo:42 });
+      // Clap auf 2 und 4
+      if (step === 4 || step === 12) hit(t, .16, .5, 'bandpass', 1600, musicBus);
+      // Hi Hats: offen auf den Offbeats, leise geschlossen dazwischen
+      if (step % 4 === 2) hit(t, .09, .22, 'highpass', 7500, musicBus);
+      else if (barNo >= 2 && step % 2 === 1) hit(t, .03, .08, 'highpass', 9000, musicBus);
+      // Pumpender Offbeat Bass
+      if (step % 4 === 2) tone(NOTE[ch.bass], t, s16 * 1.8, { type:'sawtooth', vol:.32, bus:musicBus, cutoff:520, hold:.5 });
+      if (step === 0) tone(NOTE[ch.bass] / 2, t, s16 * 3.5, { type:'sine', vol:.35, bus:musicBus, hold:.5 });
+      // Pad über den ganzen Takt
+      if (step === 0) for (const n of ch.pad) for (const det of [-1, 1])
+        tone(NOTE[n] * (1 + det * .004), t, s16 * 15.5, { type:'sawtooth', vol:.022, bus:musicBus, attack:.12, cutoff:1100, hold:.85 });
+      // Arpeggio in Sechzehnteln, ab dem dritten Takt
+      if (barNo >= 2) tone(NOTE[ch.arp[[0, 1, 2, 3, 2, 1][step % 6] ]], t, s16 * .8, { type:'square', vol:.035, bus:musicBus, cutoff:2400 });
+      // Lead Melodie mit Echo, ab dem fünften Takt
+      if (barNo >= 4 && step % 2 === 0) {
+        for (const [pos, n, len] of MELODY[(barNo - 4) % 8]) {
+          if (pos * 2 === step) for (const det of [-1, 1])
+            tone(NOTE[n] * (1 + det * .003), t, s16 * 2 * len * .95, { type:'sawtooth', vol:.06, bus:leadBus, attack:.01, cutoff:3200, hold:.7 });
+        }
+      }
+    }
+    function tick() {
+      while (nextStep < ac.currentTime + .15) {
+        scheduleStep(nextStep, stepIdx);
+        nextStep += 60 / bpm / 4;
+        stepIdx++;
+      }
+    }
+    function startMusic() {
+      if (!ready() || playing) return;
+      playing = true; stepIdx = 0; nextStep = ac.currentTime + .08;
+      delay.delayTime.setValueAtTime(60 / bpm * .75, ac.currentTime);
+      timer = setInterval(tick, 25); tick();
+    }
+    function stopMusic() { playing = false; clearInterval(timer); timer = null; }
+
+    return {
+      unlock,
+      get musicOn() { return musicOn; }, get sfxOn() { return sfxOn; },
+      toggleMusic() {
+        musicOn = !musicOn;
+        try { localStorage.setItem('pulverschnee.music', musicOn ? '1' : '0'); } catch (e) {}
+        if (ac) musicBus.gain.setTargetAtTime(musicOn ? .5 : 0, ac.currentTime, .05);
+        return musicOn;
+      },
+      toggleSfx() {
+        sfxOn = !sfxOn;
+        try { localStorage.setItem('pulverschnee.sfx', sfxOn ? '1' : '0'); } catch (e) {}
+        if (ac) sfxBus.gain.setTargetAtTime(sfxOn ? .9 : 0, ac.currentTime, .05);
+        return sfxOn;
+      },
+      startMusic, stopMusic,
+      setLevel(l) {
+        bpm = Math.min(172, 132 + (l - 1) * 5);
+        if (ac && delay) delay.delayTime.setTargetAtTime(60 / bpm * .75, ac.currentTime, .1);
+      },
+      carve(amount) {
+        if (!ac) return;
+        carveGain.gain.setTargetAtTime(Math.min(.35, amount * .35), ac.currentTime, .06);
+        carveFilter.frequency.setTargetAtTime(1400 + amount * 1800, ac.currentTime, .1);
+      },
+      gate(combo) {
+        if (!ready()) return;
+        const t = ac.currentTime, f = 660 * Math.pow(2, (combo - 1) * 2 / 12);
+        tone(f, t, .12, { type:'sine', vol:.28 }); tone(f * 1.5, t + .06, .18, { type:'sine', vol:.22 });
+      },
+      miss() {
+        if (!ready()) return;
+        tone(190, ac.currentTime, .32, { type:'sawtooth', vol:.18, glideTo:80, cutoff:900 });
+      },
+      crash() {
+        if (!ready()) return;
+        const t = ac.currentTime;
+        noise(t, .45, .6, 2400); tone(140, t, .3, { type:'sine', vol:.5, glideTo:40 });
+      },
+      heart() {
+        if (!ready()) return;
+        const t = ac.currentTime;
+        ['C6','E6','G6'].forEach((n, i) => tone(NOTE[n], t + i * .07, .2, { type:'sine', vol:.22 }));
+      },
+      level() {
+        if (!ready()) return;
+        const t = ac.currentTime;
+        ['G5','C6','E6','G6'].forEach((n, i) => tone(NOTE[n], t + i * .09, i === 3 ? .45 : .14, { type:'square', vol:.08, cutoff:3000 }));
+      },
+      over() {
+        if (!ready()) return;
+        const t = ac.currentTime;
+        ['G4','E4','C4'].forEach((n, i) => tone(NOTE[n], t + i * .22, i === 2 ? .7 : .25, { type:'triangle', vol:.3 }));
+      },
+      pause() { if (ac && ac.state === 'running') ac.suspend().catch(() => {}); },
+      resume() { if (ac && ac.state === 'suspended') ac.resume().catch(() => {}); }
+    };
+  })();
+
+  function addText(x, y, s, c) { g.texts.push({ x, y, s, c, t: 0 }); }
+
+  function lose(msg, breaksCombo) {
+    g.lives--;
+    if (breaksCombo) { g.combo = 0; g.streak = 0; }
+    g.shake = .35; g.flash = .3;
+    if (breaksCombo) sound.miss(); else sound.crash();
+    addText(g.px, g.py + 40, msg, C.red);
+    if (g.lives <= 0) g.endT = .9;
+  }
+
+  function update(dt) {
+    const d = diff();
+    const dying = g.lives <= 0;
+
+    if (dying) {
+      g.speed *= Math.pow(.04, dt);
+      g.vx *= Math.pow(.02, dt);
+      g.endT -= dt;
+      sound.carve(0);
+      if (g.endT <= 0) { gameOver(); return; }
+    } else {
+      const target = 150 + 260 * d;
+      g.speed += (target - g.speed) * Math.min(1, dt * ACCEL);
+      const dir = (keys.l || keys.bl || keys.tl ? -1 : 0) + (keys.r || keys.br || keys.tr ? 1 : 0);
+      if (dir) {
+        if (Math.sign(g.vx) !== dir) g.vx *= Math.pow(.02, dt);
+        g.vx += dir * 1100 * dt;
+      } else {
+        g.vx *= Math.pow(.015, dt);
+      }
+      g.vx = clamp(g.vx, -MAXV, MAXV);
+      sound.carve(Math.abs(g.vx) / MAXV);
+      // Kurven bremsen leicht: je stärker seitwärts, desto mehr Tempoverlust
+      g.speed -= g.speed * TURN_DRAG * (Math.abs(g.vx) / MAXV) * dt;
+    }
+
+    g.time += dt;
+    g.px += g.vx * dt;
+    const edge = g.px < 30 ? 1 : g.px > W - 30 ? -1 : 0;
+    if (edge) {
+      g.px = edge > 0 ? 30 : W - 30;
+      if (g.lives > 0 && g.inv <= 0) {
+        g.speed *= .4;
+        g.inv = 1.4;
+        g.vx = edge * 160;
+        lose('Pistenrand');
+      } else if (Math.sign(g.vx) === -edge) {
+        g.vx = 0;
+      }
+    }
+
+    const dy = g.speed * dt;
+    g.meters += dy / 10;
+    if (!dying) {
+      g.runTime += dt; g.runDist += dy;
+      g.topSpeed = Math.max(g.topSpeed, g.speed);
+      const L = levelAt(g.meters);
+      if (L !== g.level) { g.level = L; g.banner = 1.8; sound.setLevel(L); sound.level(); }
+    }
+    g.banner = Math.max(0, g.banner - dt);
+    for (const o of g.objs) o.y -= dy;
+    for (const s of specks) { s.y -= dy; if (s.y < -2) { s.y += H + 4; s.x = Math.random() * W; } }
+    for (const p of g.trail) p.y -= dy;
+    g.trail.push({ x: g.px, y: g.py });
+    while (g.trail.length && g.trail[0].y < -10) g.trail.shift();
+
+    g.gateIn -= dy;
+    if (g.gateIn <= 0) { addGate(H + 30); g.gateIn += rand(230, 270) - 70 * d; }
+    g.obsIn -= dy;
+    if (g.obsIn <= 0) { addObstacle(H + 30 + rand(0, 20)); g.obsIn += rand(60, 130) * (1 - .45 * d) * DENSITY; }
+    g.edgeIn -= dy;
+    if (g.edgeIn <= 0) { addEdge(H + 40); g.edgeIn += rand(16, 26); }
+    g.heartIn -= dy;
+    if (g.heartIn <= 0) { addHeart(H + 30); g.heartIn += rand(1200, 2000); }
+    g.chaletIn -= dy;
+    if (g.chaletIn <= 0) g.chaletIn = addChalet(H + 70) ? rand(2500, 4500) : 40;
+
+    if (g.lives > 0) {
+      for (const o of g.objs) {
+        if (o.type === 'heart' && !o.taken && Math.hypot(o.x - g.px, o.y - 8 - g.py) < 17) {
+          o.taken = true;
+          sound.heart();
+          if (g.lives < 3) { g.lives++; addText(o.x, o.y - 26, 'Leben +1', C.red); }
+          else { g.score += 25; addText(o.x, o.y - 26, '+25', C.red); }
+          continue;
+        }
+        if (o.type === 'gate' && !o.done && o.y <= g.py) {
+          o.done = true;
+          g.gatesDone++;
+          if (Math.abs(g.px - o.x) < o.gap / 2 - 5) {
+            o.ok = true;
+            g.combo = Math.min(g.combo + 1, 5);
+            g.streak++; g.passed++;
+            const pts = 10 * g.combo;
+            g.score += pts;
+            sound.gate(g.combo);
+            addText(o.x, o.y - 34, '+' + pts, o.color);
+            if (g.streak % 10 === 0 && g.lives < 3) { g.lives++; sound.heart(); addText(g.px, g.py + 44, 'Leben zurück', C.pine); }
+          } else {
+            lose('Tor verpasst', true);
+            if (g.lives <= 0) break;
+          }
+        }
+        if (o.type === 'chalet' && !o.hit && g.inv <= 0) {
+          const b = chaletBox(o);
+          const nx = clamp(g.px, b.l, b.r), ny = clamp(g.py, b.t, b.b);
+          if (Math.hypot(g.px - nx, g.py - ny) < 7) {
+            o.hit = true;
+            g.speed *= .35;
+            g.inv = 1.4;
+            g.vx = (g.px < o.x ? -1 : 1) * 180;
+            lose('Ins Chalet');
+            if (g.lives <= 0) break;
+          }
+        }
+        if ((o.type === 'tree' || o.type === 'rock') && !o.hit && g.inv <= 0) {
+          const cy = o.type === 'tree' ? o.y - o.s * .25 : o.y;
+          const r = o.type === 'tree' ? o.s * .3 : o.s * .85;
+          if (Math.hypot(o.x - g.px, cy - g.py) < r + 7) {
+            o.hit = true;
+            g.speed *= .4;
+            g.inv = 1.4;
+            lose('Sturz');
+            if (g.lives <= 0) break;
+          }
+        }
+      }
+    }
+    g.objs = g.objs.filter(o => o.y > -50 && !o.taken);
+
+    g.inv = Math.max(0, g.inv - dt);
+    g.shake = Math.max(0, g.shake - dt);
+    g.flash = Math.max(0, g.flash - dt);
+    for (const t of g.texts) { t.t += dt; t.y -= 34 * dt; }
+    g.texts = g.texts.filter(t => t.t < 1);
+  }
+
+  /* drawing */
+  function shadow(x, y, rx, ry) {
+    ctx.fillStyle = 'rgba(19,33,59,.12)';
+    ctx.beginPath(); ctx.ellipse(x + 3, y, rx, ry, 0, 0, Math.PI * 2); ctx.fill();
+  }
+  function tri(ax, ay, bx, by, cx, cy) {
+    ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.lineTo(cx, cy); ctx.closePath(); ctx.fill();
+  }
+  function drawTree(o) {
+    const { x, y, s } = o;
+    shadow(x, y, s * .38, s * .12);
+    ctx.fillStyle = C.trunk; ctx.fillRect(x - 2, y - s * .24, 4, s * .24);
+    ctx.fillStyle = C.pine;  tri(x, y - s * .78, x - s * .46, y - s * .18, x + s * .46, y - s * .18);
+    ctx.fillStyle = C.pine2; tri(x, y - s * 1.12, x - s * .33, y - s * .55, x + s * .33, y - s * .55);
+    ctx.fillStyle = C.cap;   tri(x, y - s * 1.12, x - s * .13, y - s * .92, x + s * .13, y - s * .92);
+    ctx.fillRect(x - s * .3, y - s * .58, s * .6, 2);
+  }
+  function drawChalet(o) {
+    const { x, y, s } = o;
+    const w = s, h = s * .5, l = x - w / 2;
+    shadow(x, y, w * .62, s * .1);
+    // Holzwand mit Balken
+    ctx.fillStyle = C.wood; ctx.fillRect(l, y - h, w, h);
+    ctx.fillStyle = C.woodDark;
+    for (let k = 1; k < 4; k++) ctx.fillRect(l, y - h + k * h / 4 - .6, w, 1.2);
+    // Steinsockel
+    ctx.fillStyle = C.rock; ctx.fillRect(l - 1, y - 4, w + 2, 4);
+    // Tür
+    ctx.fillStyle = C.woodDark; ctx.fillRect(x + w * .14, y - h * .62, w * .2, h * .62 - 4);
+    // Fenster mit Licht und roten Läden
+    const fx = x - w * .3, fy = y - h * .72, fw = w * .22, fh = h * .38;
+    ctx.fillStyle = C.red; ctx.fillRect(fx - fw * .38, fy, fw * .32, fh); ctx.fillRect(fx + fw * 1.06, fy, fw * .32, fh);
+    ctx.fillStyle = C.yellow; ctx.fillRect(fx, fy, fw, fh);
+    ctx.fillStyle = C.woodDark; ctx.fillRect(fx + fw / 2 - .6, fy, 1.2, fh); ctx.fillRect(fx, fy + fh / 2 - .6, fw, 1.2);
+    // Kamin
+    ctx.fillStyle = C.rock; ctx.fillRect(x + w * .22, y - s * .98, s * .1, s * .26);
+    ctx.fillStyle = C.cap; ctx.fillRect(x + w * .2, y - s * 1.0, s * .14, 3);
+    // Dach mit Schnee
+    ctx.fillStyle = C.woodDark;
+    ctx.beginPath(); ctx.moveTo(x - w * .68, y - h + 2); ctx.lineTo(x, y - s * .95); ctx.lineTo(x + w * .68, y - h + 2); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = C.cap;
+    ctx.beginPath(); ctx.moveTo(x - w * .7, y - h); ctx.lineTo(x, y - s * .97); ctx.lineTo(x + w * .7, y - h);
+    ctx.lineTo(x + w * .58, y - h - 4); ctx.lineTo(x, y - s * .88); ctx.lineTo(x - w * .58, y - h - 4); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(x - w * .48, y - h - 6); ctx.lineTo(x, y - s * .9); ctx.lineTo(x + w * .48, y - h - 6); ctx.closePath(); ctx.fill();
+    // Rauch aus dem Kamin
+    if (!reduce) {
+      ctx.fillStyle = 'rgba(91,107,130,.18)';
+      for (let k = 0; k < 3; k++) {
+        const ph = (g.time * .8 + o.smoke + k / 3) % 1;
+        ctx.beginPath(); ctx.arc(x + w * .27 + ph * 8, y - s * 1.02 - ph * 22, 2.5 + ph * 4, 0, Math.PI * 2); ctx.fill();
+      }
+    }
+  }
+  function drawRock(o) {
+    const { x, y, s, pts } = o;
+    shadow(x, y + s * .5, s * 1.05, s * .35);
+    ctx.fillStyle = C.rock;
+    ctx.beginPath();
+    pts.forEach((p, i) => { const px = x + Math.cos(p.a) * p.r, py = y + Math.sin(p.a) * p.r * .75; i ? ctx.lineTo(px, py) : ctx.moveTo(px, py); });
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle = C.cap;
+    ctx.beginPath();
+    pts.forEach((p, i) => { const px = x + Math.cos(p.a) * p.r * .55, py = y - s * .28 + Math.sin(p.a) * p.r * .3; i ? ctx.lineTo(px, py) : ctx.moveTo(px, py); });
+    ctx.closePath(); ctx.fill();
+  }
+  function drawHeart(o) {
+    const p = reduce ? 1 : 1 + Math.sin(g.time * 6 + o.x) * .1;
+    shadow(o.x, o.y, 7, 2.5);
+    ctx.save();
+    ctx.translate(o.x, o.y - 10);
+    ctx.scale(p * 1.1, p * 1.1);
+    ctx.beginPath();
+    ctx.moveTo(0, 7);
+    ctx.bezierCurveTo(-11, -1, -7, -11, 0, -4);
+    ctx.bezierCurveTo(7, -11, 11, -1, 0, 7);
+    ctx.closePath();
+    ctx.fillStyle = C.red; ctx.fill();
+    ctx.strokeStyle = C.cap; ctx.lineWidth = 1.6; ctx.stroke();
+    ctx.restore();
+  }
+  function drawGateLine(o) {
+    const lx = o.x - o.gap / 2, rx = o.x + o.gap / 2;
+    ctx.globalAlpha = o.ok ? .7 : o.done ? .15 : .4;
+    ctx.strokeStyle = o.ok ? C.yellow : o.color; ctx.lineWidth = 1.5; ctx.setLineDash([3, 6]);
+    ctx.beginPath(); ctx.moveTo(lx, o.y); ctx.lineTo(rx, o.y); ctx.stroke();
+    ctx.setLineDash([]); ctx.globalAlpha = 1;
+  }
+  function drawGate(o) {
+    const lx = o.x - o.gap / 2, rx = o.x + o.gap / 2;
+    ctx.globalAlpha = o.done && !o.ok ? .28 : 1;
+    for (const [px, dir] of [[lx, 1], [rx, -1]]) {
+      shadow(px, o.y, 4, 1.6);
+      ctx.strokeStyle = C.ink; ctx.lineWidth = 2; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(px, o.y); ctx.lineTo(px, o.y - 32); ctx.stroke();
+      ctx.fillStyle = o.ok ? C.yellow : o.color;
+      ctx.fillRect(dir > 0 ? px : px - 15, o.y - 31, 15, 11);
+      if (o.ok) { ctx.strokeStyle = C.yellowEdge; ctx.lineWidth = 1; ctx.strokeRect(dir > 0 ? px + .5 : px - 14.5, o.y - 30.5, 14, 10); }
+    }
+    ctx.globalAlpha = 1;
+  }
+  function drawSkier() {
+    if (g.inv > 0 && g.lives > 0 && Math.floor(g.inv * 12) % 2) return;
+    let ang = -g.vx / MAXV * .5;
+    if (g.lives <= 0) ang += (0.9 - g.endT) * 2.2;
+    ctx.save();
+    ctx.translate(g.px, g.py);
+    shadow(0, 6, 9, 4);
+    ctx.rotate(ang);
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = C.ink; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(-5, -13); ctx.lineTo(-5, 15); ctx.moveTo(5, -13); ctx.lineTo(5, 15); ctx.stroke();
+    ctx.strokeStyle = C.muted; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(-9, 0); ctx.lineTo(-14, -13); ctx.moveTo(9, 0); ctx.lineTo(14, -13); ctx.stroke();
+    ctx.fillStyle = C.jacket;
+    ctx.beginPath(); ctx.ellipse(0, -2, 9, 10, 0, 0, Math.PI * 2); ctx.fill();
+    // Schweizerkreuz auf dem Rücken
+    ctx.fillStyle = C.cap;
+    ctx.fillRect(-1.25, -8.5, 2.5, 8);
+    ctx.fillRect(-4, -5.75, 8, 2.5);
+    ctx.fillStyle = C.ink;
+    ctx.beginPath(); ctx.arc(0, 6, 4.6, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
+
+  function draw() {
+    if (!g) return;
+    ctx.save();
+    ctx.fillStyle = C.snow; ctx.fillRect(0, 0, W, H);
+    if (g.shake > 0 && !reduce) { const k = g.shake / .35 * 4; ctx.translate(rand(-k, k), rand(-k, k)); }
+
+    ctx.fillStyle = C.corduroy;
+    for (let x = 4; x < W; x += 9) ctx.fillRect(x, -10, 2, H + 20);
+    ctx.fillStyle = C.deep;
+    for (const s of specks) { ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2); ctx.fill(); }
+
+    if (g.trail.length > 1) {
+      ctx.strokeStyle = C.track; ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      for (const off of [-4, 4]) {
+        ctx.beginPath();
+        g.trail.forEach((p, i) => i ? ctx.lineTo(p.x + off, p.y + 12) : ctx.moveTo(p.x + off, p.y + 12));
+        ctx.stroke();
+      }
+    }
+
+    const objs = g.objs.slice().sort((a, b) => a.y - b.y);
+    for (const o of objs) if (o.type === 'gate') drawGateLine(o);
+    let skierDrawn = false;
+    for (const o of objs) {
+      if (!skierDrawn && o.y > g.py + 8) { drawSkier(); skierDrawn = true; }
+      if (o.type === 'tree' || o.type === 'edge') drawTree(o);
+      else if (o.type === 'rock') drawRock(o);
+      else if (o.type === 'gate') drawGate(o);
+      else if (o.type === 'heart') drawHeart(o);
+      else if (o.type === 'chalet') drawChalet(o);
+    }
+    if (!skierDrawn) drawSkier();
+
+    ctx.textAlign = 'center';
+    ctx.font = '700 18px "Saira Condensed", "Arial Narrow", sans-serif';
+    for (const t of g.texts) {
+      ctx.globalAlpha = 1 - t.t;
+      ctx.fillStyle = t.c;
+      ctx.fillText(t.s, t.x, t.y);
+    }
+    ctx.globalAlpha = 1;
+
+    if (g.banner > 0) {
+      const a = g.banner > 1.5 ? (1.8 - g.banner) / .3 : Math.min(1, g.banner / .6);
+      ctx.globalAlpha = a;
+      ctx.textAlign = 'center';
+      ctx.lineJoin = 'round';
+      ctx.font = '400 40px "Bowlby One", "Arial Black", sans-serif';
+      ctx.strokeStyle = C.snow; ctx.lineWidth = 8;
+      ctx.strokeText('Level ' + g.level, W / 2, H * .62);
+      ctx.fillStyle = C.ink;
+      ctx.fillText('Level ' + g.level, W / 2, H * .62);
+      ctx.font = '700 16px "Saira Condensed", "Arial Narrow", sans-serif';
+      ctx.strokeStyle = C.snow; ctx.lineWidth = 6;
+      ctx.strokeText('Schneller und engere Tore', W / 2, H * .62 + 26);
+      ctx.fillStyle = C.muted;
+      ctx.fillText('Schneller und engere Tore', W / 2, H * .62 + 26);
+      ctx.globalAlpha = 1;
+    }
+
+    if (g.flash > 0) {
+      ctx.strokeStyle = C.red; ctx.globalAlpha = Math.min(1, g.flash * 2.5); ctx.lineWidth = 10;
+      ctx.strokeRect(-6, -6, W + 12, H + 12);
+      ctx.globalAlpha = 1;
+    }
+    ctx.restore();
+  }
+
+  /* HUD */
+  const hudCache = {};
+  function setText(id, v) { if (hudCache[id] !== v) { hudCache[id] = v; $(id).textContent = v; } }
+  function hud() {
+    setText('score', String(g.score));
+    setText('level', 'Level ' + g.level);
+    setText('meters', String(Math.floor(g.meters)));
+    setText('kmh', String(Math.round(g.speed * .25)));
+    if (hudCache.lives !== g.lives) {
+      hudCache.lives = g.lives;
+      [...$('lives').children].forEach((el, i) => el.classList.toggle('off', i >= g.lives));
+    }
+  }
+  function showBest() { $('bestTop').textContent = 'Bestwert ' + best; }
+
+  function show(name) {
+    $('overlay').hidden = !name;
+    $('ovStart').hidden = name !== 'start';
+    $('ovPause').hidden = name !== 'pause';
+    $('ovOver').hidden = name !== 'over';
+    $('ovRanks').hidden = name !== 'ranks';
+    const btn = name && $({ start:'btnStart', pause:'btnResume', over:'btnAgain', ranks:'btnCloseRanks' }[name]);
+    if (btn && matchMedia('(hover:hover)').matches) btn.focus({ preventScroll: true });
+  }
+
+  let rankViewFrom = null;
+  function openRanks() {
+    if (state !== 'ready' && state !== 'over') return;
+    rankViewFrom = state === 'ready' ? 'start' : 'over';
+    show('ranks');
+    loadRanks().then(() => {
+      const me = $('fullRankList').querySelector('li.me');
+      if (me) me.scrollIntoView({ block: 'center' });
+    });
+  }
+  function closeRanks() {
+    if (!rankViewFrom) return;
+    show(rankViewFrom);
+    rankViewFrom = null;
+  }
+
+  function start() {
+    rankViewFrom = null;
+    reset(); state = 'run'; show(null); hud();
+    sound.unlock(); sound.resume(); sound.setLevel(1); sound.stopMusic();
+    setTimeout(() => { if (state === 'run') sound.startMusic(); }, 60);
+  }
+  function pause() { if (state === 'run') { state = 'pause'; show('pause'); sound.carve(0); sound.pause(); } }
+  function resume() { if (state === 'pause') { state = 'run'; show(null); last = performance.now(); sound.resume(); } }
+  function gameOver() {
+    state = 'over';
+    sound.carve(0); sound.stopMusic(); sound.over();
+    const isBest = g.score > best;
+    if (isBest) { best = g.score; try { localStorage.setItem('pulverschnee.best', String(best)); } catch (e) {} }
+    $('finScore').textContent = g.score;
+    $('finMeters').textContent = Math.floor(g.meters) + ' m';
+    $('finGates').textContent = g.passed + ' von ' + g.gatesDone;
+    $('finAvg').textContent = Math.round(g.runTime > 0 ? g.runDist / g.runTime * .25 : 0) + ' km/h';
+    $('finTop').textContent = Math.round(g.topSpeed * .25) + ' km/h';
+    $('finLevel').textContent = g.level;
+    $('finBest').textContent = best;
+    $('newBest').hidden = !(isBest && g.score > 0);
+    showBest(); hud(); show('over');
+    prepareEntry();
+  }
+
+  /* loop */
+  function loop(now) {
+    const dt = Math.min(.033, (now - last) / 1000 || 0);
+    last = now;
+    if (state === 'run') {
+      update(dt);
+      if (state === 'run') hud();
+    }
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  /* input */
+  const kmap = { ArrowLeft:'l', a:'l', A:'l', ArrowRight:'r', d:'r', D:'r' };
+  addEventListener('keydown', e => {
+    if (e.target.tagName === 'INPUT') return;
+    if (rankViewFrom) { if (e.key === 'Escape') closeRanks(); return; }
+    if (kmap[e.key]) { keys[kmap[e.key]] = true; e.preventDefault(); return; }
+    if (e.key === ' ' || e.key === 'Enter') {
+      if (e.target.tagName === 'BUTTON') return;
+      e.preventDefault();
+      if (state === 'ready' || state === 'over') start();
+      else if (state === 'pause') resume();
+    }
+    if (e.key === 'm' || e.key === 'M') { toggleMusicUi(); return; }
+    if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') {
+      if (state === 'run') pause(); else if (state === 'pause') resume();
+    }
+  });
+  addEventListener('keyup', e => { if (kmap[e.key]) keys[kmap[e.key]] = false; });
+  addEventListener('blur', () => { for (const k in keys) keys[k] = false; pause(); });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });
+
+  function bindHold(el, onDown, onUp) {
+    el.addEventListener('pointerdown', e => {
+      e.preventDefault(); onDown(e);
+      try { el.setPointerCapture(e.pointerId); } catch (_) {}
+    });
+    for (const t of ['pointerup', 'pointercancel', 'lostpointercapture']) el.addEventListener(t, onUp);
+    el.addEventListener('contextmenu', e => e.preventDefault());
+  }
+  bindHold($('padL'), () => { keys.bl = true; $('padL').classList.add('down'); }, () => { keys.bl = false; $('padL').classList.remove('down'); });
+  bindHold($('padR'), () => { keys.br = true; $('padR').classList.add('down'); }, () => { keys.br = false; $('padR').classList.remove('down'); });
+  bindHold(cv, e => {
+    const r = cv.getBoundingClientRect();
+    if (e.clientX - r.left < r.width / 2) keys.tl = true; else keys.tr = true;
+  }, () => { keys.tl = false; keys.tr = false; });
+
+  $('btnStart').addEventListener('click', start);
+  function syncSoundUi() {
+    $('btnMusic').setAttribute('aria-pressed', String(sound.musicOn));
+    $('btnSfx').setAttribute('aria-pressed', String(sound.sfxOn));
+  }
+  function toggleMusicUi() { sound.unlock(); sound.toggleMusic(); syncSoundUi(); }
+  $('btnMusic').addEventListener('click', e => { toggleMusicUi(); e.currentTarget.blur(); });
+  $('btnSfx').addEventListener('click', e => { sound.unlock(); sound.toggleSfx(); syncSoundUi(); e.currentTarget.blur(); });
+  syncSoundUi();
+  document.querySelectorAll('.openRanks').forEach(b => b.addEventListener('click', openRanks));
+  $('btnCloseRanks').addEventListener('click', closeRanks);
+  $('btnAgain').addEventListener('click', start);
+  $('btnResume').addEventListener('click', resume);
+
+  /* sizing */
+  function fit() {
+    const r = cv.getBoundingClientRect();
+    if (!r.width) return;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    cv.width = Math.round(r.width * dpr);
+    cv.height = Math.round(r.height * dpr);
+    ctx.setTransform(cv.width / W, 0, 0, cv.height / H, 0, 0);
+    draw();
+  }
+  if ('ResizeObserver' in window) new ResizeObserver(fit).observe(cv);
+  addEventListener('resize', fit);
+
+  /* Bestenliste: Allzeit und Heute (Läufe mit dem heutigen Datum) */
+  const binUrl = () => LB_URL;
+  const configured = () => true;
+  const dayKey = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  const localDate = () => dayKey(new Date());
+  const sortRanks = list => list
+    .filter(e => e && typeof e.score === 'number' && typeof e.name === 'string')
+    .sort((a, b) => b.score - a.score || (b.meters || 0) - (a.meters || 0))
+    .slice(0, RANK_MAX);
+  let board = { scores: [], recent: [] }, boardLoaded = false, rankTab = 'all';
+  let ranks = [], myEntryId = null, submitted = false, lastRun = null;
+
+  async function fetchBoard() {
+    const res = await fetch(binUrl(), {
+      cache: 'no-store'
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    return {
+      scores: Array.isArray(data && data.scores) ? data.scores : [],
+      recent: Array.isArray(data && data.recent) ? data.recent : []
+    };
+  }
+  async function saveBoard(b) {
+    const res = await fetch(binUrl(), {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(b)
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+  }
+  // Heute: Läufe aus der Tagesliste und der Allzeitliste mit dem heutigen Datum
+  function currentList() {
+    if (rankTab !== 'day') return sortRanks(board.scores);
+    const d = localDate(), seen = new Set(), out = [];
+    for (const e of board.recent.concat(board.scores)) {
+      if (e && e.date === d && !seen.has(e.id || e)) { seen.add(e.id || e); out.push(e); }
+    }
+    return sortRanks(out);
+  }
+  function rankStatus(text) {
+    for (const id of ['startRankStatus', 'overRankStatus', 'fullRankStatus']) {
+      $(id).hidden = !text;
+      $(id).textContent = text || '';
+    }
+  }
+  function fillList(ol, n) {
+    ol.textContent = '';
+    ranks.slice(0, n).forEach((e, i) => {
+      const li = document.createElement('li');
+      if (e.id && e.id === myEntryId) li.className = 'me';
+      const d = /^\d{4}-\d{2}-\d{2}$/.test(e.date || '') ? e.date.slice(8, 10) + '.' + e.date.slice(5, 7) + '.' + e.date.slice(2, 4) : '';
+      for (const [cls, txt] of [['pos', (i + 1) + '.'], ['nm', e.name], ['pts', e.score], ['m', Math.floor(e.meters || 0) + ' m'], ['lv', e.level ? 'L' + e.level : ''], ['dt', d]]) {
+        const s = document.createElement('span');
+        s.className = cls;
+        s.textContent = String(txt);
+        li.appendChild(s);
+      }
+      ol.appendChild(li);
+    });
+  }
+  function renderRanks() {
+    ranks = currentList();
+    fillList($('startRankList'), 5);
+    fillList($('overRankList'), 5);
+    fillList($('fullRankList'), RANK_MAX);
+    $('fullTitle').textContent = rankTab === 'day' ? 'Top 150 heute' : 'Top 150 Allzeit';
+    rankStatus(ranks.length ? '' : rankTab === 'day' ? 'Heute ist noch niemand gefahren. Hol dir den Tagesrekord!' : 'Noch keine Einträge. Fahr den ersten Rekord!');
+  }
+  function setTab(t) {
+    rankTab = t;
+    document.querySelectorAll('.tab').forEach(b => {
+      const on = b.dataset.tab === t;
+      b.classList.toggle('on', on);
+      b.setAttribute('aria-pressed', String(on));
+    });
+    try { localStorage.setItem('pulverschnee.tab', t); } catch (e) {}
+    if (boardLoaded) renderRanks();
+    else $('fullTitle').textContent = t === 'day' ? 'Top 150 heute' : 'Top 150 Allzeit';
+  }
+  document.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => setTab(b.dataset.tab)));
+  try { const t = localStorage.getItem('pulverschnee.tab'); if (t === 'day' || t === 'all') setTab(t); } catch (e) {}
+
+  async function loadRanks() {
+    if (!configured()) { rankStatus('Bestenliste nicht eingerichtet: Bin ID oben im Skript eintragen.'); return; }
+    if (!boardLoaded) rankStatus('Bestenliste lädt');
+    try { board = await fetchBoard(); boardLoaded = true; renderRanks(); }
+    catch (err) { rankStatus('Bestenliste nicht erreichbar (' + err.message + ').'); }
+  }
+  function entryMsg(t) { $('entryMsg').textContent = t; }
+
+  function prepareEntry() {
+    lastRun = {
+      score: g.score,
+      meters: Math.floor(g.meters),
+      level: g.level,
+      date: localDate()
+    };
+    submitted = false;
+    $('btnSend').disabled = false;
+    entryMsg('');
+    $('entryForm').hidden = !(configured() && g.score > 0);
+    try { $('playerName').value = localStorage.getItem('pulverschnee.name') || ''; } catch (e) {}
+    if (!$('entryForm').hidden && matchMedia('(hover:hover)').matches) $('playerName').focus({ preventScroll: true });
+    loadRanks();
+  }
+
+  $('entryForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    if (submitted || !lastRun) return;
+    const name = $('playerName').value.trim().slice(0, 16);
+    if (!name) { entryMsg('Bitte einen Namen eingeben.'); return; }
+    try { localStorage.setItem('pulverschnee.name', name); } catch (_) {}
+    $('btnSend').disabled = true;
+    entryMsg('Wird eingetragen');
+    try {
+      // frisch laden, damit Einträge anderer Spieler nicht verloren gehen
+      const b = await fetchBoard();
+      const entry = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name, ...lastRun };
+      b.scores.push(entry);
+      b.scores = sortRanks(b.scores);
+      // Tagesliste: nur heute und gestern behalten, damit der Bin klein bleibt
+      const y = new Date(); y.setDate(y.getDate() - 1);
+      const keep = new Set([localDate(), dayKey(y)]);
+      b.recent = b.recent.filter(x => x && keep.has(x.date));
+      b.recent.push(entry);
+      b.recent = b.recent.sort((p, q) => q.score - p.score).slice(0, 300);
+      await saveBoard(b);
+      board = b; boardLoaded = true;
+      submitted = true;
+      myEntryId = entry.id;
+      renderRanks();
+      const pos = ranks.findIndex(x => x.id === entry.id) + 1;
+      entryMsg(pos ? (rankTab === 'day' ? 'Heute auf Platz ' : 'Eingetragen auf Platz ') + pos + '.' : 'Für die Top ' + RANK_MAX + ' hat es diesmal nicht gereicht.');
+    } catch (err) {
+      $('btnSend').disabled = false;
+      entryMsg('Eintragen fehlgeschlagen (' + err.message + '). Nochmals versuchen?');
+    }
+  });
+
+  reset();
+  showBest();
+  loadRanks();
+  hud();
+  fit();
+  show('start');
+  requestAnimationFrame(t => { last = t; loop(t); });
+})();
+</script>
+
+</body>
+</html>
