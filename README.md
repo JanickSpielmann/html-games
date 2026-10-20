@@ -37,7 +37,13 @@ Zum Testen auf dem Mac selbst gibt es `http://localhost:8088`. Anderer Port: `GA
     git pull
     docker compose up -d --build
 
-Änderungen an Spielen und der Übersichtsseite sind nach dem `git pull` sofort sichtbar. Der Befehl `docker compose up` ist nur nötig, wenn sich `api/`, `nginx.conf` oder `docker-compose.yml` geändert haben.
+Änderungen an Spielen und der Übersichtsseite sind nach dem `git pull` sofort sichtbar. Der Befehl `docker compose up -d --build` ist nur nötig, wenn sich `api/` oder `docker-compose.yml` geändert haben.
+
+Hat sich `nginx.conf` geändert, den Container neu erstellen:
+
+    docker compose up -d --build --force-recreate
+
+Grund: `nginx.conf` ist als einzelne Datei eingebunden. Nach `git pull` ist das eine neue Datei, der laufende Container sieht aber weiter die alte. Ein `nginx -s reload` oder ein normales `docker compose up` genügt deshalb nicht.
 
 ## Neues Spiel hinzufügen
 
