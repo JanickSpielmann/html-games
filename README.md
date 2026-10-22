@@ -60,5 +60,3 @@ Die Bestenlisten liegen im Docker Volume `games-data` und nicht im Repo. Sicheru
 Die API ist bewusst einfach gehalten: Wer die Seite erreicht, kann Einträge schreiben und überschreiben. Für den Prototyp im Heimnetz ist das gewollt.
 
 Test Auto Deploy
-
-Test Auto Deploy
