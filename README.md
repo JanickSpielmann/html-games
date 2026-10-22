@@ -58,3 +58,5 @@ Die Bestenlisten liegen im Docker Volume `games-data` und nicht im Repo. Sicheru
     docker run --rm -v winkel-games_games-data:/data -v "$PWD":/backup alpine cp /data/db.json /backup/bestenlisten-backup.json
 
 Die API ist bewusst einfach gehalten: Wer die Seite erreicht, kann Einträge schreiben und überschreiben. Für den Prototyp im Heimnetz ist das gewollt.
+
+Test Auto Deploy
