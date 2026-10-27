@@ -80,7 +80,26 @@
     border-radius: 999px; border: 1px solid var(--line); color: var(--muted);
   }
   footer { margin-top: 40px; color: var(--muted); font-size: 13px; }
-  .version { margin-top: 12px; text-align: right; font-size: 12.5px; opacity: .8; }
+  .version { margin-top: 12px; text-align: right; font-size: 12.5px; }
+  .version a { color: inherit; opacity: .8; text-decoration: underline dotted; text-underline-offset: 3px; }
+  .version a:hover, .version a:focus-visible { opacity: 1; color: var(--text); }
+  dialog {
+    width: calc(100% - 32px); max-width: 560px; padding: 24px;
+    background: var(--surface); color: var(--text);
+    border: 1px solid var(--line); border-radius: var(--radius);
+  }
+  dialog::backdrop { background: rgba(0, 0, 0, .55); }
+  dialog h2 { margin: 0 0 16px; font-size: 22px; letter-spacing: -.01em; }
+  .log { list-style: none; padding: 0; margin: 0 0 20px; display: grid; gap: 14px; max-height: 60vh; overflow: auto; }
+  .log b { font-size: 15px; }
+  .log time { margin-left: 8px; color: var(--muted); font-size: 13px; }
+  .log p { margin: 2px 0 0; color: var(--muted); font-size: 14.5px; }
+  .close {
+    font: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+    padding: 8px 16px; border-radius: 999px; border: 1px solid var(--line);
+    background: transparent; color: var(--text);
+  }
+  .close:hover { border-color: var(--accent); }
   @media (prefers-reduced-motion: reduce) { .card { transition: none; } .card:hover { transform: none; } }
 </style>
 </head>
@@ -96,13 +115,27 @@
 
   <footer>
     <div><span id="count"></span> · gehostet im Winkel</div>
-    <div class="version">Version <span id="version"></span></div>
+    <div class="version"><a href="#aenderungen" id="version-link">Version <span id="version"></span></a></div>
   </footer>
+
+  <dialog id="changelog" aria-labelledby="changelog-title">
+    <h2 id="changelog-title">Änderungsprotokoll</h2>
+    <ul class="log" id="log"></ul>
+    <form method="dialog"><button class="close">Schliessen</button></form>
+  </dialog>
 </div>
 
 <script>
-  // Bei jeder Änderung an der Seite oder an den Spielen Version und Datum hochzählen.
-  const VERSION = { number: "1.4", date: "27.10.2026" };
+  // Bei jeder Änderung an der Seite oder an den Spielen oben einen Eintrag ergänzen.
+  // Der oberste Eintrag ist die aktuelle Version.
+  const CHANGELOG = [
+    { number: "1.5", date: "27.10.2026", text: "Die Version ist ein Link zum Änderungsprotokoll." },
+    { number: "1.4", date: "27.10.2026", text: "Neues Icon für Browser Tab und Homescreen: ein roter Controller." },
+    { number: "1.3", date: "27.10.2026", text: "Neues Gamepad Icon für Browser Tab und Homescreen." },
+    { number: "1.2", date: "27.10.2026", text: "Die Version steht rechts unten, mit Datum." },
+    { number: "1.1", date: "27.10.2026", text: "Die Version wird unten auf der Hauptseite angezeigt." }
+  ];
+  const VERSION = CHANGELOG[0];
 
   // Neues Spiel? Einfach hier einen Eintrag ergänzen.
   const games = [
@@ -161,6 +194,27 @@
   }
   document.getElementById("count").textContent = games.length + " Spiele";
   document.getElementById("version").textContent = VERSION.number + " · " + VERSION.date;
+
+  // Änderungsprotokoll: Link auf die Version öffnet ein Fenster, auch über #aenderungen erreichbar.
+  const dlg = document.getElementById("changelog");
+  const log = document.getElementById("log");
+  for (const c of CHANGELOG) {
+    const li = document.createElement("li");
+    li.innerHTML = '<b></b><time></time><p></p>';
+    li.querySelector("b").textContent = "Version " + c.number;
+    li.querySelector("time").textContent = c.date;
+    li.querySelector("p").textContent = c.text;
+    log.appendChild(li);
+  }
+  const openLog = () => { if (!dlg.open) dlg.showModal(); };
+  document.getElementById("version-link").addEventListener("click", (e) => {
+    e.preventDefault();
+    history.replaceState(null, "", "#aenderungen");
+    openLog();
+  });
+  dlg.addEventListener("close", () => history.replaceState(null, "", location.pathname + location.search));
+  dlg.addEventListener("click", (e) => { if (e.target === dlg) dlg.close(); });
+  if (location.hash === "#aenderungen") openLog();
 </script>
 </body>
 </html>

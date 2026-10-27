@@ -47,7 +47,7 @@ Grund: `nginx.conf` ist als einzelne Datei eingebunden. Nach `git pull` ist das 
 
 ## Version
 
-Die Version steht unten auf der Übersichtsseite. Sie wird in `index.html` oben im Skript bei `VERSION` gepflegt (Nummer und Datum) und bei jeder Änderung hochgezählt.
+Die Version steht unten rechts auf der Übersichtsseite und ist ein Link zum Änderungsprotokoll (auch über `#aenderungen` erreichbar). Beides kommt aus der Liste `CHANGELOG` in `index.html` oben im Skript. Bei jeder Änderung oben einen Eintrag mit Nummer, Datum und kurzem Text ergänzen, der oberste Eintrag ist die aktuelle Version.
 
 ## Neues Spiel hinzufügen
 
