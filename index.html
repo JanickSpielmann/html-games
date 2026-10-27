@@ -80,6 +80,7 @@
     border-radius: 999px; border: 1px solid var(--line); color: var(--muted);
   }
   footer { margin-top: 40px; color: var(--muted); font-size: 13px; }
+  .version { margin-top: 12px; text-align: right; font-size: 12.5px; opacity: .8; }
   @media (prefers-reduced-motion: reduce) { .card { transition: none; } .card:hover { transform: none; } }
 </style>
 </head>
@@ -93,12 +94,15 @@
 
   <ul class="grid" id="grid"></ul>
 
-  <footer><span id="count"></span> · Version <span id="version"></span> · gehostet im Winkel</footer>
+  <footer>
+    <div><span id="count"></span> · gehostet im Winkel</div>
+    <div class="version">Version <span id="version"></span></div>
+  </footer>
 </div>
 
 <script>
   // Bei jeder Änderung an der Seite oder an den Spielen Version und Datum hochzählen.
-  const VERSION = { number: "1.1", date: "27.10.2026" };
+  const VERSION = { number: "1.2", date: "27.10.2026" };
 
   // Neues Spiel? Einfach hier einen Eintrag ergänzen.
   const games = [
@@ -156,7 +160,7 @@
     grid.appendChild(li);
   }
   document.getElementById("count").textContent = games.length + " Spiele";
-  document.getElementById("version").textContent = VERSION.number + " (" + VERSION.date + ")";
+  document.getElementById("version").textContent = VERSION.number + " · " + VERSION.date;
 </script>
 </body>
 </html>
