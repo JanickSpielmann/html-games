@@ -93,10 +93,13 @@
 
   <ul class="grid" id="grid"></ul>
 
-  <footer><span id="count"></span> · gehostet im Winkel</footer>
+  <footer><span id="count"></span> · Version <span id="version"></span> · gehostet im Winkel</footer>
 </div>
 
 <script>
+  // Bei jeder Änderung an der Seite oder an den Spielen Version und Datum hochzählen.
+  const VERSION = { number: "1.1", date: "27.10.2026" };
+
   // Neues Spiel? Einfach hier einen Eintrag ergänzen.
   const games = [
     { name: "Hagelflieger",  path: "Hagelflieger/hagelflieger.html",   icon: "Hagelflieger/hagelflieger-icon.svg",
@@ -153,6 +156,7 @@
     grid.appendChild(li);
   }
   document.getElementById("count").textContent = games.length + " Spiele";
+  document.getElementById("version").textContent = VERSION.number + " (" + VERSION.date + ")";
 </script>
 </body>
 </html>

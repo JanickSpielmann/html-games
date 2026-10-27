@@ -45,6 +45,10 @@ Hat sich `nginx.conf` geändert, den Container neu erstellen:
 
 Grund: `nginx.conf` ist als einzelne Datei eingebunden. Nach `git pull` ist das eine neue Datei, der laufende Container sieht aber weiter die alte. Ein `nginx -s reload` oder ein normales `docker compose up` genügt deshalb nicht.
 
+## Version
+
+Die Version steht unten auf der Übersichtsseite. Sie wird in `index.html` oben im Skript bei `VERSION` gepflegt (Nummer und Datum) und bei jeder Änderung hochgezählt.
+
 ## Neues Spiel hinzufügen
 
 1. Ordner mit der HTML Datei und dem Icon anlegen.
